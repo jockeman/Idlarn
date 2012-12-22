@@ -1,0 +1,13 @@
+##
+## The one and only Reven, adapted from sodomized.cow (artist unknown)
+## by vol@Update.UU.SE
+##
+$the_cow = <<EOC;
+      $thoughts                __
+       $thoughts              (^^)
+        $thoughts     //\\      / \\
+         $thoughts __/$eyes \\____/_\\ \\
+          /___/\\        ) /
+                ||-----|((
+                ||     ||>> 
+EOC

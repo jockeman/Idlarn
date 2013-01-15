@@ -9,6 +9,10 @@ module Hday
     holidays.values.include?(date)
   end
 
+  def self.get_fettisdag(year)
+    get_easter(year)-47
+  end
+
   def self.get_easter(year)
     cent = year / 100
     n = year-19*(year/19)

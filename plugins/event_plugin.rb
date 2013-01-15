@@ -38,7 +38,7 @@ class EventPlugin < BasePlugin
     alias :saker :list
 
     def datum(msg)
-      TimeParser.parse_ex(msg.message)
+      TimeParser.parse_ex(msg.message).to_s
       #TimeParser.get_date(msg.message)
     end
 

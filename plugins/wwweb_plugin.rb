@@ -3,7 +3,7 @@ require 'nokogiri'
 require 'open-uri'
 class WwwebPlugin < BasePlugin
   def initialize()
-    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'hastheworldended?']
+    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'sda']
     @actions += ['stenbocken', 'vattumannen', 'fiskarna', 'väduren', 'oxen', 'tvillingarna', 'kräftan', 'lejonet', 'jungfrun', 'vågen', 'skorpionen', 'skytten']
   end
 
@@ -35,10 +35,10 @@ class WwwebPlugin < BasePlugin
       resp = "#{s} st super nu!"
     end
 
-    def hastheworldended? msg
-      puts 'End'
-      doc = Nokogiri::HTML(open("http://hastheworldendedyet.co/").read)
-      s = doc.xpath('//h1[@class="bigtext"]').children.to_s
+    def ismycomputeron msg
+      puts 'On'
+      doc = Nokogiri::HTML(open("http://www.ismycomputeron.com/").read)
+      s = doc.xpath('//font').children.to_s
       resp = "#{s}"
     end
 
@@ -47,6 +47,24 @@ class WwwebPlugin < BasePlugin
       doc = Nokogiri::HTML(open("http://vecka.nu").read)
       m = doc.xpath('//div[@id="hoz"]/div').children.to_s
       resp = "Det är vecka #{m}."
+    end
+
+    def sda msg
+      puts 'sda'
+      uri = 'http://marathon.speeddemosarchive.com/schedule'
+      doc = Nokogiri::HTML(open(uri).read)
+      table = doc.xpath "//table[@id='runTable']/tbody"
+      list = table[0].children.map{|r| r.children.map{|q| q.child.to_s}}
+      list.each{|r| r[0] = Time.parse(r[0].sub(/(\d+)\/(\d+)/, '\2/\1')+"-0500")}
+      now = list.select{|r| r[0] < Time.now}.last
+      nex = list.select{|r| r[0] > Time.now}.first
+      basestr = "[%s] %s - %s, Tid: %s %s"
+      nowstr = basestr % [now[0].strftime("%H:%M"), *now[1..-1]]
+      #nowstr = "Nu: #{now[1]} - #{now[2]}, Tid: #{now[3]}"
+      nextstr = basestr % [nex[0].strftime("%H:%M"), *nex[1..-1]]
+      #nextstr = "[#{nex[0].strftime "%H:%M"}] #{nex[1]} - #{nex[2]}, Tid: #{nex[3]}"
+#      "Now playing: #{now[1]}. Upcoming: [#{nex[0].strftime "%H:%M"}] #{nex[1]}"
+      [nowstr.strip, nextstr.strip]
     end
 
     def stenbocken msg

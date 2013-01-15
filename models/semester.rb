@@ -5,7 +5,8 @@ class Semester < ActiveRecord::Base
     from, till = string.split('till')
     from = Time.parse(from)
     till = Time.parse(till) if till
-    till = from.tomorrow if till.nil?
+    till = from if till.nil?
+    till = till.tomorrow if till.hour == 0
     sem = self.find_by_user_id user.id, :conditions => "(starts_at BETWEEN '#{from}' AND '#{till}') OR (ends_at BETWEEN '#{from}' AND '#{till}') OR (starts_at < '#{from}' AND ends_at > '#{till}') OR (starts_at > '#{from}' AND ends_at < '#{till}')"
     if sem
       sem.starts_at = from
@@ -37,7 +38,7 @@ class Semester < ActiveRecord::Base
     now = Time.now
     s = 0
     str = '%s har semester ' % self.user.to_s
-    work_time = Wokr.find_by_user_id self.user_id || Work.default
+    work_time = Work.default #Work.find_by_user_id self.user_id || Work.default
     starts_at = self.starts_at
     starts_at-= 1.day while Hday.is_holiday(starts_at.to_date - 1)
     starts_at-=(24-work_time.end_hour).hour if starts_at.hour == 0

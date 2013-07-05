@@ -4,7 +4,8 @@ class Outgoing
     @message = message
     @priv = opts[:priv]
     @mode = opts[:mode]
-  end
+    `echo "[#{Time.now.strftime "%F %T"} | ME] #{@message}" >> /home/idlarn/log/#{@channel}.log` if @message
+    end
 
   def to_s()
     if @priv

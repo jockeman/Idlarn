@@ -1,6 +1,6 @@
 # coding: utf-8
-class CalPlugin
-  def initialize
+class CalPlugin < BasePlugin
+  def initialize()
     @actions = ['c', 'cal', 'pop', 'p']
   end
 

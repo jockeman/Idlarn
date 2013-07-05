@@ -1,5 +1,6 @@
 # coding: utf-8
 require 'digest/md5'
+require 'shellwords'
 class UrlsPlugin < BasePlugin
 URLEX = /https?:\/\/[^ ]*/u
   def initialize()
@@ -19,6 +20,9 @@ URLEX = /https?:\/\/[^ ]*/u
     end
 
     def url(msg)
+      addmix(msg) if msg.message.downcase.scan(/dagens mix/).length > 0
+      addmix(msg) if msg.message.downcase.scan(/dagens umpa/).length > 0
+      save_img(msg) if msg.message.downcase.scan(/jpg|jpeg|png|gif|bmp/).length > 0
       urs = msg.message.scan URLEX
       urs.map do |ur|
         if (u = Url.compare(ur, msg))
@@ -28,6 +32,31 @@ URLEX = /https?:\/\/[^ ]*/u
           "Jösses Amalia vad ute du är, " + u.to_hip
         end
       end.compact
+    end
+
+    def save_img(msg)
+      puts "Bild!"
+      urs = msg.message.scan URLEX
+      begin
+      `cd /home/idlarn/slaskbilder/; /usr/bin/wget #{urs.first.shellescape}`
+      rescue StandardError => e
+        puts e.message
+      end
+    end
+
+    def addmix(msg)
+      puts "Mixx!"
+      urs = msg.message.scan URLEX
+      return nil if urs.length < 1
+      url = urs.first
+      datum = (Time.now.to_date + 1).to_time
+      dagstart = (datum.to_date - 1).to_time
+
+      if Mix.find_by_user_id msg.user.dbuser.id, :conditions => "created_at BETWEEN '%s' AND '%s'" % [dagstart, datum]
+        puts "Har redan postat idag"
+        return nil
+      end
+      Mix.create :user_id => msg.user.dbuser.id, :url => url, :created_at => Time.now
     end
 
     def old(msg)

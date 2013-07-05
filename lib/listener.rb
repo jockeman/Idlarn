@@ -19,7 +19,7 @@ class Listener
     @running = true
     @thr = Thread.new do
       while @running
-        msg = @irc.read()
+        msg = @irc.read() rescue nil
         next if msg.nil?
         parse_input(msg) rescue nil
       end

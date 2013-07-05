@@ -6,7 +6,8 @@ class SlaskPlugin < BasePlugin
   GSUBEX = /^s\/.*\/.*\/g$/
   OMSTART = /omstart,.?$/
   def initialize()
-    @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'juljmp', 'skrivaao', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare']
+    @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'juljmp', 'skrivaao', 'skrivåäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension']
+    @actions += ['veme', 'vemär']
     @regexps = [SUBEX, GSUBEX, OMSTART]
   end
 
@@ -44,6 +45,34 @@ class SlaskPlugin < BasePlugin
     #  puts e.message
     #  raise e
     end
+    
+    def pension(msg)
+      if msg.message.length > 0
+        birthdate = DateTime.parse(msg.message)
+        msg.user.dbuser.birthdate = birthdate
+        msg.user.dbuser.save
+      end
+      birthdate = msg.user.dbuser.birthdate
+      return "Jag vet inte när du är född" if birthdate.nil?
+      pday = birthdate.to_datetime.next_year(65)
+      nu = DateTime.now
+      dd = DateTimeDiff.new(nu, pday)
+      puts dd.diff.inspect
+      if dd.years < 0
+        dd3 = DateTimeDiff.new(pday, nu)
+        dd3.diff
+        return "Du borde ha gått i pension för " + dd3.to_string + "sedan."
+      end
+      dd2 = DateTimeDiff.new(birthdate.to_datetime, nu)
+      puts dd2.diff.inspect
+      bonusstr = "."
+      if (dd2.years > dd.years) or 
+      (dd2.years == dd.years and dd2.months > dd.months) or
+      (dd2.years == dd.years and dd2.months == dd.months and dd2.days > dd.days)
+        bonusstr = ". Du är mer än halvvägs nu." 
+      end
+      "Du går i pension om " + dd.to_string + bonusstr 
+    end
 
     def rovare(msg)
       rovarstr = 's/\([bcdfghjklmnpqrstvwxz]\)/\1o\1/g'
@@ -61,6 +90,7 @@ class SlaskPlugin < BasePlugin
     def skrivaao(msg)
         ['Detta är UTF-8 åäöÅÄÖ.', 'Detta är ISO-8859-15 åäöÅÄÖ.'.encode("ISO-8859-15", "UTF-8")]
     end
+    alias :skrivåäö :skrivaao
 
     def skrivaoaueoeoe(msg) 
       "Detta är Danska aaAAøØæÆ"
@@ -141,5 +171,13 @@ class SlaskPlugin < BasePlugin
     def pick(msg)
       msg.message.split(' vs ').shuffle.first.strip
     end
+
+    def veme(msg)
+      return nil if msg.message.split.length != 1
+      u = User.fetch msg.message.split.first, false
+      return "%s -> %s" % [msg.message.split.first, u.to_s] unless u.nil?
+      return "Vet inte vem som är %s" % msg.message.split.first
+    end
+    alias :vemär :veme
 #  end
 end

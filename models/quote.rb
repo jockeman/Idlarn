@@ -1,3 +1,4 @@
+# coding: utf-8
 class Quote < ActiveRecord::Base
   belongs_to :user
   belongs_to :channel
@@ -5,7 +6,7 @@ class Quote < ActiveRecord::Base
   def self.log_quote adder, channel_name, quote
     channel = Channel.find_or_create_by_name channel_name.upcase.gsub(/#/,'')
     puts "[%s@%s] %s" % ['QUOTE', channel.name, quote]
-    self.create 'channel_id' => channel.id, 'quote' => quote, 'adder' => adder.id
+    self.create 'channel_id' => channel.id, 'quote' => quote, 'adder' => adder.id, 'timestamp' => Time.now
     "Ok, added #{quote}"
   end
 
@@ -37,12 +38,16 @@ class Quote < ActiveRecord::Base
         self.find str.to_i
       else
         str = str.downcase
-        str.gsub!(/[^a-z0-9]/,'')
+        str.gsub!(/[^a-z0-9åäö]/,'')
         self.find :first, :conditions => "quote ILIKE '%#{str}%'", :order => 'RANDOM()'
       end
     end
     return nil if q.nil?
     user = User.find q.adder
-    "Quote #%d: %s (Added by: %s)" % [q.id, q.quote, user.to_s]
+    if q.timestamp
+      "Quote #%d: %s (Added by: %s %s)" % [q.id, q.quote, user.to_s, q.timestamp.strftime("%Y-%m-%d")]
+    else
+      "Quote #%d: %s (Added by: %s)" % [q.id, q.quote, user.to_s]
+    end
   end
 end

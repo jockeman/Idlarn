@@ -12,7 +12,7 @@ class IRC
   end
 
   def read()
-    ready = select([@irc])
+    ready = select([@irc], nil, nil, 600)
     for s in ready[0]
       if s == @irc
         if @irc.eof?
@@ -56,7 +56,9 @@ class IRC
 
 private
   def connect()
+    print "Connecting"
     @irc = TCPSocket.open(@host, @port)
+    print "Connected"
     send_message "USER #{@uname} 0 * :#{@name}"
     send_message "NICK #{@nick}"
   rescue

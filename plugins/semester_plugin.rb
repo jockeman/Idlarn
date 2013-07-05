@@ -39,13 +39,13 @@ class SemesterPlugin < BasePlugin
 
     def helg msg
       user = User.fetch(msg.message, false) || msg.user.dbuser
-      work_time = Work.default #Work.find_by_user_id user.id || Work.default
+      work_time = Work.find_by_user_id(user.id) || Work.default
       if Time.now.saturday?
         return "Det är lördag idag!"
       elsif Time.now.sunday?
         return "Det är söndag!"
-      elsif Time.now.friday? && Time.now.hour > work_time.end_hour
-        return "Har du inte tagit helg nu så borde du det!"
+      elsif (Time.now.friday? || Hday.is_holiday(Date.today + 1)) && Time.now.hour >= work_time.end_hour
+        return "Har du inte redan tagit helg nu så borde du göra det!"
       end
       sem = Semester.get_semesters(user).first
       if sem && sem.starts_at < Time.now #Semester nu!

@@ -5,6 +5,8 @@ class User < ActiveRecord::Base
   has_many :urls
   has_many :semesters
   has_many :jobs
+  has_many :mix
+  has_many :mix_ranks
   attr_reader :icon
 
   def self.fetch nick, store=true

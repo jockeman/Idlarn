@@ -55,6 +55,7 @@ module Hday
       :pingst => easter+7*7,
       :nationaldagen => Date.new(year,6,6),
       :midsommar => get_midsommar(year),
+      :midsommarafton => get_midsommar(year).prev_day,
       :allhelgona => get_allhelgona(year),
       :juldagen => Date.new(year,12,25),
       :annandagen => Date.new(year,12,26),

@@ -54,6 +54,8 @@ class Event < ActiveRecord::Base
     elsif self.startar < nu && self.slutar < nu
       if self.startar.to_date == nu.to_date && self.startar.hour == 0 && self.startar.min == 0
         return "#{key.capitalize} idag \\o/"
+      elsif self.startar != self.slutar
+        return "#{key.capitalize} var förr"
       else
         return str
       end
@@ -74,7 +76,12 @@ class Event < ActiveRecord::Base
 
   def self.undo key
     e = Event.find_by_key_and_in_use(key, true)
-    return if e.nil?
+    if e.nil?
+      e = Event.find_by_key key
+      e.in_use = true
+      e.save
+      return 'Ok'
+    end
     oe = Event.find :first, :conditions => "key = '#{key}' AND created_at < '#{e.created_at}'", :order => 'created_at desc'
     return if oe.nil?
     e.in_use = false

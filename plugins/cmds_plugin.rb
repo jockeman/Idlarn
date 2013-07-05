@@ -1,7 +1,11 @@
 # coding: utf-8
 class CmdsPlugin < BasePlugin
   def initialize()
-    @actions = ['sex', 'sexycow', 'sexyrev']#, 'cow', 'sexycow']
+    @actions = ['sex', 'sexycow', 'sexyrev', 'uptime']#, 'cow', 'sexycow']
+  end
+
+  def uptime(msg)
+    `/usr/bin/uptime`.strip
   end
 
   def sexycow(msg)

@@ -7,7 +7,11 @@ class HaddockPlugin < BasePlugin
 
 #  class << self
     def haddock(msg)
-      h = Haddock.find :first, :order => 'RANDOM()'
+      if msg.message.empty?
+        h = Haddock.find :first, :order => 'RANDOM()'
+      else
+        h = Haddock.find :first, :conditions => "insult ilike '%#{msg.message}%'", :order => 'RANDOM()' 
+      end
       h.insult if h
     end
 
@@ -19,14 +23,24 @@ class HaddockPlugin < BasePlugin
     def insult(msg)
       return nil unless msg.message 
       return nil if msg.message.empty?
+      insultee = msg.message
       ins = Insult.find :first, :order => 'RANDOM()'
-      ins.insult % msg.message if ins
+      if ins.insult.match(/%S/)
+        ins.insult.gsub!(/%S/,'%s')
+        insultee.upcase!
+      end
+      ins.insult % insultee if ins
     end
 
     def addinsult(msg)
       return nil unless msg.message
       ins = Insult.create :insult => msg.message
-      ins.insult % msg.user.nick
+      insultee = msg.user.nick
+      if ins.insult.match(/%S/)
+        ins.insult.gsub!(/%S/,'%s')
+        insultee.upcase!
+      end
+      ins.insult % insultee if ins
     end
 
     def hylla(msg)

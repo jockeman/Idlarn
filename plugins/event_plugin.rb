@@ -1,7 +1,7 @@
 # coding: utf-8
 class EventPlugin < BasePlugin
   def initialize()
-    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history']
+    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen']
   end
 
   #class << self
@@ -9,7 +9,7 @@ class EventPlugin < BasePlugin
       if @actions.include? msg.action
         super
       else
-        resp = Event.naer msg.action rescue return nil
+        resp = Event.naer msg.action.downcase rescue return nil
         build_response(resp, msg)
       end
     end
@@ -30,6 +30,15 @@ class EventPlugin < BasePlugin
     end
     alias :nästa :next
 
+    def idag(msg)
+      e = Event.list.first
+      if e.startar.to_date == Date.today
+        e.to_string
+      else
+        "Idag är det ingen dag"
+      end
+    end
+
     def list(msg)
       es = Event.list
       es = es.select{|e| e.key!= 'fika' && e.key!= 'lunch'}
@@ -38,8 +47,15 @@ class EventPlugin < BasePlugin
     alias :saker :list
 
     def datum(msg)
+      if msg.message.empty?
+        return Time.now.to_s
+      end
       TimeParser.parse_ex(msg.message).to_s
       #TimeParser.get_date(msg.message)
+    end
+    
+    def omsen(msg)
+      TimeParser.get_date(msg.message).to_date.omsen.strip.capitalize
     end
 
     def lon(msg)
@@ -49,9 +65,15 @@ class EventPlugin < BasePlugin
         d = $1.to_i
       end
       message = msg.message.gsub(/@(\d*)/u, '')
-      kvar = message.to_i
+      if message.length > 0
+        if message.strip.to_i.to_s == message.strip
+          kvar = message.to_i
+        else
+          kvar = "NaN"
+        end
+      end
       datum = lond(d)
-      omsen(datum, kvar)
+      omsenlon(datum, kvar)
     end
     alias :lön :lon
 
@@ -71,16 +93,18 @@ class EventPlugin < BasePlugin
       sdate
     end
 
-    def omsen(date, kvar=0)
+    def omsenlon(date, kvar=0)
       nu = Date.today
       if nu == date
-        "Löning idag \o/"
+        "Löning idag \\o/"
       else 
         dagar = (date - nu).to_i
-        if kvar > 0
+        if kvar == "NaN"
+          "Du får leva på NaN-bröd till nästa löning"
+        elsif kvar > 0
           pd = kvar / dagar
           pd = "ÖVER NIO TUSEN" if pd > 9000
-          "Nästa lön kommer #{date.to_s}, du har #{pd} pengaenheter att leva på per dag."
+          "Nästa lön kommer #{date.to_s}, du har #{pd} pengaenheter att spendera på sprit o horer per dag."
         else
           "Nästa lön kommer om #{dagar} dagar."
         end
@@ -109,7 +133,7 @@ class EventPlugin < BasePlugin
 
     def history(msg)
       es = Event.find_all_by_key msg.message.split.first, :order => :created_at
-      es.map{|e| ((e.in_use ? "=> " : "   ") +e.to_string)}.uniq
+      es.map{|e| ((e.in_use ? "=> " : "   ") +e.to_string+(e.user ? " ["+e.user.to_s+"]" : ""))}.uniq
     end
 #  end
 end

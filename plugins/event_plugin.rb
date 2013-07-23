@@ -1,7 +1,7 @@
 # coding: utf-8
 class EventPlugin < BasePlugin
   def initialize()
-    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen']
+    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån']
   end
 
   #class << self
@@ -77,13 +77,39 @@ class EventPlugin < BasePlugin
     end
     alias :lön :lon
 
+    def la_n(msg)
+      input = msg.message.split.map{|m| m.to_f}
+      lan = input.max
+      avbet = input.min
+      months = (lan/avbet).ceil
+      y = months / 12
+      m = months % 12
+      print [lan, avbet, months, y, m].inspect
+      if y > 0 && m > 0
+        "Det kommer ta dig %d år och %d månader att bli skuldfri" % [y, m]
+      elsif y > 0
+        "Det kommer ta dig %d år att bli skuldfri" % [y]
+      elsif m > 0
+        "Det kommer ta dig %d månader att bli skuldfri" % [m]
+      else
+        nil
+      end
+    end
+    alias :lån :la_n
+
     def friday(msg)
       return "It's Friday, Friday. Gotta get down on Friday. Everybody's lookin' forward to the weekend, weekend." if Date.today.friday?
       return "After Friday comes Saturday!" if Date.today.saturday?
       return "Lillfredag idag \\o/" if Hday.is_holiday(Date.today + 1)
       return "Nopp :("
     end
-    alias :fredag :friday
+
+    def fredag(msg)
+      return "Det är fredag, fredag. Måste komma ner på fredag. Alla tittar fram till helgen, helgen." if Time.now.friday?
+      friday(msg)
+    end
+
+    #alias :fredag :friday
 
     def lond(d=25)
       month=Date.today.month

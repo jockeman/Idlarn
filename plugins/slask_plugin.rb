@@ -47,13 +47,22 @@ class SlaskPlugin < BasePlugin
     end
     
     def pension(msg)
+      name = "du"
+      u = msg.user.dbuser
       if msg.message.length > 0
-        birthdate = DateTime.parse(msg.message)
-        msg.user.dbuser.birthdate = birthdate
-        msg.user.dbuser.save
+        if !(u = User.fetch(msg.message, false)).nil?
+          print "Hittade"
+          name = u.to_s
+        else
+          print "År"
+          birthdate = DateTime.parse(msg.message)
+          msg.user.dbuser.birthdate = birthdate
+          msg.user.dbuser.save
+          u = msg.user.dbuser
+        end
       end
-      birthdate = msg.user.dbuser.birthdate
-      return "Jag vet inte när du är född" if birthdate.nil?
+      birthdate = u.birthdate
+      return "Jag vet inte när "+name+" är född" if birthdate.nil?
       pday = birthdate.to_datetime.next_year(65)
       nu = DateTime.now
       dd = DateTimeDiff.new(nu, pday)
@@ -61,7 +70,7 @@ class SlaskPlugin < BasePlugin
       if dd.years < 0
         dd3 = DateTimeDiff.new(pday, nu)
         dd3.diff
-        return "Du borde ha gått i pension för " + dd3.to_string + "sedan."
+        return name.capitalize + " borde ha gått i pension för " + dd3.to_string + "sedan."
       end
       dd2 = DateTimeDiff.new(birthdate.to_datetime, nu)
       puts dd2.diff.inspect
@@ -69,9 +78,9 @@ class SlaskPlugin < BasePlugin
       if (dd2.years > dd.years) or 
       (dd2.years == dd.years and dd2.months > dd.months) or
       (dd2.years == dd.years and dd2.months == dd.months and dd2.days > dd.days)
-        bonusstr = ". Du är mer än halvvägs nu." 
+        bonusstr = ". "+name.capitalize+" är mer än halvvägs nu." 
       end
-      "Du går i pension om " + dd.to_string + bonusstr 
+      name.capitalize + " går i pension om " + dd.to_string + bonusstr 
     end
 
     def rovare(msg)
@@ -143,11 +152,16 @@ class SlaskPlugin < BasePlugin
     alias :måndag :monday
 
     def friday(msg)
-      return "It's Friday, Friday. Gotta get down on Friday. Everybody's lookin' forward to the weekend, weekend." if Time.now.friday?
+      return "Det är fredag, fredag. Måste komma ner på fredag. Alla tittar fram till helgen, helgen." if Time.now.friday?
+      #return "It's Friday, Friday. Gotta get down on Friday. Everybody's lookin' forward to the weekend, weekend." if Time.now.friday?
       return "After Friday comes Saturday!" if Time.now.saturday?
       return "Kanske lillfredag..."#"No :("
     end
-    alias :fredag :friday
+
+    def fredag(msg)
+      return "Det är fredag, fredag. Måste komma ner på fredag. Alla tittar fram till helgen, helgen." if Time.now.friday?
+      friday(msg)
+    end
 
     def punch(msg)
       return "Det är torsdag, klart du ska ha lite punch!" if Time.now.thursday?

@@ -1,12 +1,24 @@
 # coding: utf-8
 require 'gdbm'
+require 'zlib'
 
 class GayPlugin < BasePlugin
+  A = -421/5525.0; B = 2964/425.0; C = -266112/5525.0
+  A1 = -87938533687/94431605510171898419461975.0; B1 = 529610498446420146604/94431605510171898419461975.0; C1 = -720041078472685432397564955264/94431605510171898419461975.0
   def initialize()
     @actions = ['gay', 'wt']
   end
 
 #  class << self
+    def g(nick)
+      x = Zlib.crc32(nick) % 100
+      ((A*x**2+B*x+C).round()%101)/10.0
+    end
+
+    def g2(nick)
+      x = Zlib.crc32(nick)
+      ((A1*x**2+B1*x+C1).round()%101)/10.0
+    end
 
     def gay(msg)
       parts = msg.message.split if msg.message
@@ -16,13 +28,13 @@ class GayPlugin < BasePlugin
         duser = part.downcase
         duser.gsub!(/[^a-z0-9åäö]/,'')
         next if duser.length == 0
-        gaydb = init_gay()
-        val = gaydb[duser]
-        if val == nil
-          val = '%.1f' % (rand*10)
-          gaydb[duser] = val
-        end
-        gaydb.close
+        #gaydb = init_gay()
+        val = g2(duser) #gaydb[duser]
+        #if val == nil
+        #  val = '%.1f' % (rand*10)
+        #  gaydb[duser] = val
+        #end
+        #gaydb.close
         val
       end
       vals.compact!

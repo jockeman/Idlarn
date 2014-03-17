@@ -42,7 +42,7 @@ class Url < ActiveRecord::Base
     if times == 1
       "Först länkad av %s %s" % [self.user.to_s, self.created_at.to_s]
     else
-      "Föst länkad av %s %s, länkad %d gånger" % [self.user.to_s, self.created_at.to_s, self.times+extra]
+      "Först länkad av %s %s, länkad %d gånger" % [self.user.to_s, self.created_at.to_s, self.times+extra]
     end
   end
 private

@@ -16,6 +16,7 @@ class BildzPlugin < BasePlugin
   def bildr(msg)
     msg.message=~@regexps.first
     `(cd bildz; wget '#{$1}')`
+    `curl #{$1} | jp2a --width=40 > picbuff.txt`
     return nil
   end
 end

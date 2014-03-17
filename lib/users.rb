@@ -6,6 +6,7 @@ class Users
   def get(msg)
     key = build_key(msg.nick, msg.uname, msg.host)
     user = @users[key] ||= CachedUser.new(msg)
+    #user.ignore = true if msg.host == "h-198-37.a137.corp.bahnhof.se"
     raise "Ignored user" if user.ignore == true || (user.ignore.class == Time && user.ignore > Time.now)
     user
   end

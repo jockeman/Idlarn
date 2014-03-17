@@ -4,6 +4,6 @@ class AddBirthdate < ActiveRecord::Migration
   end
 
   def self.down
-    remove_column :users, :timestamp
+    remove_column :users, :birthdate
   end
 end

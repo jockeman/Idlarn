@@ -32,15 +32,19 @@ class IRC
     send_message "NICK #{@nick}"
   end
 
-  def send_message(msg)
+  def send_message(msg, all_caps=false)
     return if msg.nil?
-    @irc.puts("%s\r\n" % msg.to_s)
+    begin
+      @irc.puts("%s\r\n" % msg.to_s(all_caps))
+    rescue
+      @irc.puts("%s\r\n" % msg.to_s)
+    end
     puts "--> %s" % msg
   end
 
   def disconnect(str = 'Changing batteries')
-    #send_message "QUIT :#{str}" 
-    #@irc.close
+    send_message "QUIT :#{str}" 
+    @irc.close
   rescue
     nil
   end
@@ -49,8 +53,10 @@ class IRC
     send_message('JOIN :#%s' % chan.to_s)
   end
 
-  def reconnect()
+  def reconnect(host=@host, port=@port)
     disconnect()
+    @host = host
+    @port = port
     connect()
   end
 

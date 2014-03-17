@@ -36,6 +36,8 @@ class Listener
       part($1,$2,$3,$4)
     when Regexps::NICK
       nick($1,$2,$3,$4)
+    when Regexps::KICK
+      kick($1,$2,$3,$4,$5,$6)
     when Regexps::MESSAGE
       msg($1,$2,$3,$4,$5)
     when Regexps::CTCP_PING
@@ -46,6 +48,7 @@ class Listener
       @irc.join('dv')
       @irc.join('dv_foto')
       @irc.join('update')
+      @irc.join('dv_bildz')
     else
       #other($1, $2, $3, $4, $5)
       #say(msg)
@@ -57,6 +60,14 @@ class Listener
     @irc.send_message("PONG %s" % host)
   end
 
+  def kick(nick, uname, host, chan, knick, msg)
+    puts "Kick"
+    puts [nick, uname, host, chan, knick, msg].inspect
+    if knick == @irc.nick
+      puts "No, it was me!"
+      @irc.join(chan)
+    end
+  end
   def join(nick, uname, host, chan)
     @que << RawMessage.new(:join, nick, uname, host, chan)
   end

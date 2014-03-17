@@ -24,7 +24,7 @@ class CommandPlugin < BasePlugin
     def opme(msg)
       user = msg.user.nick
       channel = msg.message
-      Outgoing.new(channel, "+o #{user}", {:mode => true})
+      ModeMessage.new(channel, "+o", user)
     end
 
     def ignore(msg)

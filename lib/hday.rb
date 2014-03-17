@@ -5,7 +5,7 @@ module Hday
   def self.is_holiday(date)
     date = date.to_date
     return true if [6,7].include? date.cwday
-    holidays = holidays_for_year(date.year)
+    holidays = free_days_for_year(date.year)
     holidays.values.include?(date)
   end
 
@@ -42,12 +42,18 @@ module Hday
   def self.special_days_for_year(year)
     specials = holidays_for_year(year)
   end
+  def self.free_days_for_year(year)
+    free = holidays_for_year(year)
+    free[:julafton] = Date.new(year,12,24)
+    free[:nyarsafton] = Date.new(year,12,30)
+    return free
+  end
   def self.holidays_for_year(year) 
     easter = get_easter(year)
     holidays = {
       :nyarsdagen => Date.new(year,1,1),
       :trettondagen => Date.new(year,1,6),
-      :forsatmaj => Date.new(year, 5,1),
+      :forstamaj => Date.new(year, 5,1),
       :langfredag => easter-2,
       :paskdagen => easter,
       :annandagpask => easter+1,

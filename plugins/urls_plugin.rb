@@ -4,7 +4,7 @@ require 'shellwords'
 class UrlsPlugin < BasePlugin
 URLEX = /https?:\/\/[^ ]*/u
   def initialize()
-    @actions = ['old', 'oldz', 'oldest', 'oldscore']
+    @actions = ['old', 'oldz', 'oldest', 'oldscore', 'randomknug']
     @regexps = [URLEX]
   end
 
@@ -20,8 +20,9 @@ URLEX = /https?:\/\/[^ ]*/u
     end
 
     def url(msg)
-      addmix(msg) if msg.message.downcase.scan(/dagens mix/).length > 0
+      addmix(msg) if msg.message.downcase.scan(/dagens ?mix/).length > 0
       addmix(msg) if msg.message.downcase.scan(/dagens umpa/).length > 0
+      addknug(msg) if msg.message.downcase.scan(/knug/).length > 0
       save_img(msg) if msg.message.downcase.scan(/jpg|jpeg|png|gif|bmp/).length > 0
       urs = msg.message.scan URLEX
       urs.map do |ur|
@@ -35,10 +36,12 @@ URLEX = /https?:\/\/[^ ]*/u
     end
 
     def save_img(msg)
-      puts "Bild!"
+      puts "Bild! from " + msg.channel
+      return if msg.channel == "dv_foto"
       urs = msg.message.scan URLEX
       begin
-      `cd /home/idlarn/slaskbilder/; /usr/bin/wget #{urs.first.shellescape}`
+      `cd /home/idlarn/slaskbilder/; /usr/bin/wget -b #{urs.first.shellescape}`
+      `cd /home/idlarn; /bin/echo #{urs.first.shellescape} > picbuff.tmp && /usr/bin/curl #{urs.first.shellescape} | /usr/bin/jp2a --width=55 - >> picbuff.tmp && /bin/cat picbuff.tmp >> picbuff.txt`
       rescue StandardError => e
         puts e.message
       end
@@ -57,6 +60,15 @@ URLEX = /https?:\/\/[^ ]*/u
         return nil
       end
       Mix.create :user_id => msg.user.dbuser.id, :url => url, :created_at => Time.now
+    end
+
+    def addknug(msg)
+      puts "Knug!"
+      urs = msg.message.scan URLEX
+      return nil if urs.length < 1
+      url = urs.first
+
+      Knug.create :user_id => msg.user.dbuser.id, :url => url, :created_at => Time.now
     end
 
     def old(msg)
@@ -100,6 +112,11 @@ URLEX = /https?:\/\/[^ ]*/u
         usrs << ("[%d] %s: %d/%d (%.1f%%)" % [i+1, u.to_s, u.oldz, (pcount||0), oldprcnt])
       end
       usrs.join(', ') unless usrs.empty?
+    end
+
+    def randomknug(msg)
+      k = Knug.first :order => "RANDOM()"
+      k.url
     end
 #  end
 end

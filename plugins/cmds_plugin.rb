@@ -1,7 +1,7 @@
 # coding: utf-8
 class CmdsPlugin < BasePlugin
   def initialize()
-    @actions = ['sex', 'sexycow', 'sexyrev', 'uptime']#, 'cow', 'sexycow']
+    @actions = ['sex', 'sexycow', 'sexyrev', 'uptime', 'cow', 'rev']#, 'cow', 'sexycow']
   end
 
   def uptime(msg)
@@ -31,8 +31,16 @@ class CmdsPlugin < BasePlugin
   end
 
     def cow(msg)
+      return nil if msg.message.empty?
       resp = []
-      `/usr/bin/cowsay Mu`.each_line{|l| resp << l }
+      `/usr/bin/cowsay #{msg.message.shellescape}`.each_line{|l| resp << l }
+      resp
+    end
+
+    def rev(msg)
+      return nil if msg.message.empty?
+      resp = []
+      `/usr/bin/cowsay -f /home/idlarn/icf/static/reven.cow #{msg.message.shellescape}`.each_line{|l| resp << l }
       resp
     end
 

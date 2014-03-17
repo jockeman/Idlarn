@@ -10,7 +10,7 @@ class User < ActiveRecord::Base
   attr_reader :icon
 
   def self.fetch nick, store=true
-    nick = nick.downcase
+    nick = nick.downcase.strip
     user = self.find_by_display(nick) or self.find_by_nick(nick)
     user = (alt = Alt.find_by_nick(nick)) && alt.user if user.nil?
     user = self.create :nick => nick, :display => nick if user.nil? if store==true

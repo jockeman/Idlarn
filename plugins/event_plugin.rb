@@ -1,7 +1,7 @@
 # coding: utf-8
 class EventPlugin < BasePlugin
   def initialize()
-    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån']
+    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån', 'födelsedag']
   end
 
   #class << self
@@ -18,7 +18,7 @@ class EventPlugin < BasePlugin
       if msg.message && msg.message.length > 0
         events = Event.find_all_by_in_use true, :order => :key, :conditions => "key ilike '%#{msg.message}%'", :limit => 6
       else
-        events = Event.count :conditions => "in_use = TRUE"#find_all_by_in_use true, :order => :key
+        events = Event.count :conditions => "in_use = TRUE", :group => :key#find_all_by_in_use true, :order => :key
         return "Det finns #{events} nycklar, använd .events <delnyckel> för att söka."
       end
       events[5].key= "..." if events.length > 5
@@ -50,8 +50,8 @@ class EventPlugin < BasePlugin
       if msg.message.empty?
         return Time.now.to_s
       end
-      TimeParser.parse_ex(msg.message).to_s
-      #TimeParser.get_date(msg.message)
+      #TimeParser.parse_ex(msg.message).to_s
+      TimeParser.get_date(msg.message).to_s
     end
     
     def omsen(msg)
@@ -60,9 +60,11 @@ class EventPlugin < BasePlugin
 
     def lon(msg)
       datum, kvar = nil, 0
-      d = 25
+      d = msg.user.dbuser.payday
       if msg.message=~/@(\d*)/u
         d = $1.to_i
+        msg.user.dbuser.payday = d
+        msg.user.dbuser.save
       end
       message = msg.message.gsub(/@(\d*)/u, '')
       if message.length > 0
@@ -105,7 +107,7 @@ class EventPlugin < BasePlugin
     end
 
     def fredag(msg)
-      return "Det är fredag, fredag. Måste komma ner på fredag. Alla tittar fram till helgen, helgen." if Time.now.friday?
+      return "Det är fredag, fredag. Måste få ner på fredag. Alla tittar fram till helgen, helgen." if Time.now.friday?
       friday(msg)
     end
 
@@ -161,5 +163,24 @@ class EventPlugin < BasePlugin
       es = Event.find_all_by_key msg.message.split.first, :order => :created_at
       es.map{|e| ((e.in_use ? "=> " : "   ") +e.to_string+(e.user ? " ["+e.user.to_s+"]" : ""))}.uniq
     end
+
+    def birthdays(msg)
+      if msg.message.empty?
+        users = User.where("extract(MONTH from birthdate) = #{Date.today.month} AND extract(DAY FROM birthdate) = #{Date.today.day}")
+        if users.empty?
+          "Jag känner ingen som fyller år idag. :("
+        else
+          "Hipp! Hipp! Hurra! För " + users.map{|u| u.to_s}.join(" och ") + "!"
+        end
+      else
+        user = User.fetch msg.message, false
+        if user.birthdate
+          "%s fyller år %s" % [ user.to_s, user.birthdate.strftime("%d/%m")]
+        else
+          "Jag vet inte när %s fyller år" % user.to_s
+        end
+      end
+    end
+    alias :födelsedag :birthdays
 #  end
 end

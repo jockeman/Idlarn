@@ -9,7 +9,8 @@ class NgPlugin < BasePlugin
   def reg_all()
     reg_action :dc do |message|
       puts message.message.shellescape
-      `echo #{message.message.shellescape} | dc`
+      #`echo #{message.message.shellescape} | dc`
+      `dc -e #{message.message.shellescape}`
     end
   end
 end

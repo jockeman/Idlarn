@@ -42,6 +42,9 @@ URLEX = /https?:\/\/[^ ]*/u
 
   def dagens(msg)
     nick = msg.action.gsub('dagens','')
+    if nick == "mix"
+      return dagensmix(msg)
+    end
     u = User.fetch nick, false
     if u
       if msg.message.length > 0

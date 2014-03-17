@@ -3,7 +3,7 @@ class KarmaPlugin < BasePlugin
   KARMAUP = /^.*\+\+$/
   KARMADN = /.*--/
   def initialize()
-    @actions = ['karma']
+    @actions = ['karma', 'karmatoppen', 'karmabotten']
     @regexps = [KARMAUP,KARMADN]
   end
 
@@ -41,5 +41,24 @@ class KarmaPlugin < BasePlugin
     u = User.fetch msg.message, false
     u = msg.user.dbuser.reload if u.nil?
     "#{u.to_s} har %d karma" % u.karma if u
+  end
+
+  def karmatoppen(msg)
+    list = User.all :order => "karma desc", :limit => 5
+    karmas = []
+    list.each_with_index do |u, i| 
+      karmas << "[%d] %s: %d" % [i+1, u.to_s, u.karma]
+    end
+    karmas.join(", ")
+  end
+
+
+  def karmabotten(msg)
+    list = User.all :order => "karma asc", :limit => 5
+    karmas = []
+    list.each_with_index do |u, i| 
+      karmas << "[%d] %s: %d" % [i+1, u.to_s, u.karma]
+    end
+    karmas.join(", ")
   end
 end

@@ -11,6 +11,7 @@ module Regexps
   PART = /^#{HOSTMASK}PART\s:(.+)$/
   QUIT = /^#{HOSTMASK}QUIT\s:(.+)$/
   NICK = /^#{HOSTMASK}NICK\s:(.+)$/
+  KICK = /^#{HOSTMASK}KICK\s#{CHAN}(.+)\s:(.+)/
 
   CTCP_PING_REPLY = "NOTICE %s :\001PING %s\001"
   CTCP_VERSION_REPLY = "NOTICE %s :\001VERSION %s\001"

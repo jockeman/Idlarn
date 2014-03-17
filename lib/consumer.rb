@@ -2,13 +2,14 @@ class Consumer
   require 'fiber_pool'
   attr_accessor :irc
   attr_reader :users
+  attr_accessor :fp
   def initialize(q, irc, plugins=nil)
     @que = q
     @irc = irc
     @users = Users.new
     @plugins = {}
     @regexps = {}
-    plugins = %w(slask event quote gay wwweb urls haddock tele holiday cmds semester karma) unless plugins
+    plugins = %w(slask event quote gay wwweb urls haddock tele holiday cmds semester karma mix) unless plugins
     plugins.each{|p| self.load_plugin(p)}
   end
 
@@ -42,11 +43,11 @@ class Consumer
             message = Message.new(user, raw_msg) rescue next
             begin
               @fp.spawn do
-              begin
-                handle_message message
-              rescue Exception => e
-                puts e
-              end
+                begin
+                  handle_message message
+                rescue Exception => e
+                  puts e
+                end
               end
             rescue Exception => e
               puts e
@@ -77,6 +78,7 @@ class Consumer
   end
 
   def handle_message message
+    all_caps = false
     if message.action == 'help'
       if !message.message.empty?
         plugin = find_plugin message.message
@@ -101,9 +103,15 @@ class Consumer
         end
       end
     else 
+      all_caps = message.action && message.action.upcase == message.action
+      if Date.today.day == 22 && Date.today.month == 10
+        all_caps = true
+      end
+      message.action.downcase! if message.action
       plugin = find_plugin message.action
       plugin = @regexps.select{|r,p| message.message=~r}.values.first if plugin.nil? && message.action.nil? 
       if plugin
+        ActionHistory.create :user_id => message.user.dbid, :action => message.action, :parameters => message.message
         p = BasePlugin.const_get(plugin).new
         p.nick = @irc.nick
         responses = p.action(message)
@@ -117,8 +125,9 @@ class Consumer
         return nil
       end
       responses = [responses] unless responses.kind_of? Array
+      print all_caps
       responses.each do |response|
-        @irc.send_message response
+        @irc.send_message response, all_caps
       end
     else
       message.user.previous[message.channel] = message.message
@@ -132,6 +141,7 @@ class Consumer
 
 private
   def find_plugin action
+    action = action.downcase if action
     plugin = @plugins[action] if action
     plugin = @plugins.select{|a,p| a.class == Regexp && action=~a}.values.first if plugin.nil?
     plugin = @plugins['default'] if plugin.nil? && action

@@ -6,7 +6,7 @@ class SlaskPlugin < BasePlugin
   GSUBEX = /^s\/.*\/.*\/g$/
   OMSTART = /omstart,.?$/
   def initialize()
-    @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'juljmp', 'skrivaao', 'skrivåäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension']
+    @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'skrivaao', 'skrivåäö', 'åäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension', 'beatlön', 'pi', 'dopparedan','frdg', '星期五']
     @actions += ['veme', 'vemär']
     @regexps = [SUBEX, GSUBEX, OMSTART]
   end
@@ -100,6 +100,7 @@ class SlaskPlugin < BasePlugin
         ['Detta är UTF-8 åäöÅÄÖ.', 'Detta är ISO-8859-15 åäöÅÄÖ.'.encode("ISO-8859-15", "UTF-8")]
     end
     alias :skrivåäö :skrivaao
+    alias :åäö :skrivaao
 
     def skrivaoaueoeoe(msg) 
       "Detta är Danska aaAAøØæÆ"
@@ -125,9 +126,6 @@ class SlaskPlugin < BasePlugin
     def longjmp(msg)
       'For speed!'
     end
-    def juljmp(msg)
-      'For speed!'
-    end
 
     def stop(msg)
       'Hammertime!'
@@ -145,6 +143,13 @@ class SlaskPlugin < BasePlugin
       '@'+it.to_s
     end
 
+    def beatlön(msg)
+      bph = 41.666
+      hp = msg.message.to_i / 173.0
+      bp = hp/bph
+      "Du har "+ bp.round(2).to_s + "kr i beatlön"
+    end
+
     def monday(msg)
       return 'http://youtu.be/s22bwvHQcnc' if Time.now.monday?
       return 'Nope! \o/'
@@ -152,15 +157,23 @@ class SlaskPlugin < BasePlugin
     alias :måndag :monday
 
     def friday(msg)
-      return "Det är fredag, fredag. Måste komma ner på fredag. Alla tittar fram till helgen, helgen." if Time.now.friday?
+      return "Det är fredag, fredag. Måste få ner på fredag. Alla tittar fram till helgen, helgen." if Time.now.friday?
       #return "It's Friday, Friday. Gotta get down on Friday. Everybody's lookin' forward to the weekend, weekend." if Time.now.friday?
       return "After Friday comes Saturday!" if Time.now.saturday?
       return "Kanske lillfredag..."#"No :("
     end
 
     def fredag(msg)
-      return "Det är fredag, fredag. Måste komma ner på fredag. Alla tittar fram till helgen, helgen." if Time.now.friday?
+      return "Det är fredag, fredag. Måste få ner på fredag. Alla tittar fram till helgen, helgen." if Time.now.friday?
       friday(msg)
+    end
+
+    def frdg(msg)
+      return friday(msg).gsub(/[AEIOUYÅÄÖaeiouyåäö]/,'')
+    end
+
+    def 星期五(msg)
+      return "Vad fan betyder 星期五?"
     end
 
     def punch(msg)
@@ -193,5 +206,17 @@ class SlaskPlugin < BasePlugin
       return "Vet inte vem som är %s" % msg.message.split.first
     end
     alias :vemär :veme
+
+    def pi(msg)
+      "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378678316527120190914564856692346034861045432664821339360726024914127372458700660631558817488152092096282925409171536436789259036001133053054882046652138414695194151160943305727036575959195309218611738193261179310"
+    end
+
+    def dopparedan(msg)
+      daydiff = Date.new(Date.current.year,12,24) - Date.today
+      daydiff = Date.new(Date.current.year+1,12,24) - Date.today if daydiff < 0
+      puts daydiff
+      return daydiff.to_i.to_s + "x dan före dopparedan" if daydiff > 20
+      ("Idag är det " + (0...(daydiff)).map{|o| 'dan före'}.join(" ") + " dopparedan.").capitalize
+    end
 #  end
 end

@@ -1,5 +1,5 @@
 class ICF
-  attr_reader :irc
+  attr_accessor :irc
   attr_reader :consumer, :listener
   def initialize(host='irc.homelien.no', port=6667)
     @irc = IRC.new(host, port)
@@ -50,7 +50,7 @@ class ICF
     @irc = IRC.new(host, port)
     @listener.irc = @irc
     @consumer.irc = @irc
-    start!
+    run!
   end
 
   def reload_plugin_manager path='plugin_manager'
@@ -59,6 +59,10 @@ class ICF
 
   def reload_users path='users'
     @consumer.reload_users path
+  end
+
+  def say(msg, channel="dv")
+    @irc.send_message(Outgoing.new(channel, msg))
   end
   
 end

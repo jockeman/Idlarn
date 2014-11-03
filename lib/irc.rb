@@ -16,7 +16,7 @@ class IRC
     for s in ready[0]
       if s == @irc
         if @irc.eof?
-          connect()
+          reconnect()
           next
         end
         return s.gets

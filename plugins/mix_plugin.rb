@@ -69,7 +69,8 @@ URLEX = /https?:\/\/[^ ]*/u
           return "Ok"
         end
       end
-      rank = MixRank.sum :rank, :conditions => {:mix_id => m.id}
+      #rank = MixRank.sum :rank, :conditions => {:mix_id => m.id}
+      rank = MixRank.where(mix_id: m.id).sum(:rank)
       "%s %s %d poäng" % [m.created_at.strftime("%Y-%m-%d"), m.url, rank]
     end
   end
@@ -82,9 +83,10 @@ URLEX = /https?:\/\/[^ ]*/u
       msg.message.gsub!(/@user [^ ]*/, "")
       spec = true
     else
-      user = "Plux"
+      #user = "Plux"
+      user = nil
     end
-    u = User.fetch user, false
+    u = User.fetchg( user, false) if user
     if msg.message.length > 0
       datum = (Time.parse msg.message) rescue Time.now
     else
@@ -94,13 +96,13 @@ URLEX = /https?:\/\/[^ ]*/u
     datum = (datum.to_date + 1).to_time
     dagstart = (datum.to_date - 1).to_time
 
-    m = Mix.find :first, :conditions => "created_at BETWEEN '%s' AND '%s' AND user_id = %d" % [dagstart, datum, u.id], :order => "created_at ASC"
+    m = Mix.find :first, :conditions => "created_at BETWEEN '%s' AND '%s' AND user_id = %d" % [dagstart, datum, u.id], :order => "created_at ASC" if u
     if m.nil? && spec == false
-      m = Mix.find :first, :conditions => "created_at BETWEEN '%s' AND '%s'" % [dagstart,datum, u.id], :order => "created_at ASC"
+      m = Mix.find :first, :conditions => "created_at BETWEEN '%s' AND '%s'" % [dagstart,datum], :order => "created_at ASC"
     end
     if m.nil?
       spec = false
-      m = Mix.find :first, :conditions => "created_at <= '%s' AND user_id = %d" % [datum, u.id], :order => "created_at DESC"
+      m = Mix.find :first, :conditions => "created_at <= '%s'" % [datum], :order => "created_at DESC"
     end
       if msg.message.length > 0
         if msg.message.match(/\+\+/)

@@ -6,7 +6,7 @@ class SlaskPlugin < BasePlugin
   GSUBEX = /^s\/.*\/.*\/g$/
   OMSTART = /omstart,.?$/
   def initialize()
-    @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'skrivaao', 'skrivåäö', 'åäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension', 'beatlön', 'pi', 'dopparedan','frdg', '星期五']
+    @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'skrivaao', 'skrivåäö', 'åäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension', 'beatlön', 'pi', 'dopparedan','frdg', 'ångest']
     @actions += ['veme', 'vemär']
     @regexps = [SUBEX, GSUBEX, OMSTART]
   end
@@ -39,7 +39,7 @@ class SlaskPlugin < BasePlugin
       #resp+=(msg.user.previous[msg.channel].gsub(/#{f}/, r)) if g
       puts "echo #{msg.user.previous[msg.channel].shellescape} | sed -e #{msg.message.shellescape}".strip
       sub=`echo #{msg.user.previous[msg.channel].shellescape} | sed -e #{msg.message.shellescape}`.strip
-      return nil if sub == msg.user.previous[msg.channel]
+      return nil if sub == msg.user.previous[msg.channel].shellescape
       resp+sub
     #rescue StandardError => e
     #  puts e.message
@@ -70,7 +70,7 @@ class SlaskPlugin < BasePlugin
       if dd.years < 0
         dd3 = DateTimeDiff.new(pday, nu)
         dd3.diff
-        return name.capitalize + " borde ha gått i pension för " + dd3.to_string + "sedan."
+        return name.capitalize + " borde ha gått i pension för " + dd3.to_string + " sedan."
       end
       dd2 = DateTimeDiff.new(birthdate.to_datetime, nu)
       puts dd2.diff.inspect
@@ -83,8 +83,47 @@ class SlaskPlugin < BasePlugin
       name.capitalize + " går i pension om " + dd.to_string + bonusstr 
     end
 
+    def ångest(msg)
+      name = "du"
+      u = msg.user.dbuser
+      if msg.message.length > 0
+        if !(u = User.fetch(msg.message, false)).nil?
+          print "Hittade"
+          name = u.to_s
+        else
+          print "År"
+          birthdate = DateTime.parse(msg.message)
+          msg.user.dbuser.birthdate = birthdate
+          msg.user.dbuser.save
+          u = msg.user.dbuser
+        end
+      end
+      birthdate = u.birthdate
+      return "Jag vet inte när "+name+" är född" if birthdate.nil?
+
+      pday = birthdate.to_datetime.next_year(81.1)
+      nu = DateTime.now
+      dd = DateTimeDiff.new(nu, pday)
+      puts dd.diff.inspect
+      if dd.years < 0
+        dd3 = DateTimeDiff.new(pday, nu)
+        dd3.diff
+        return name.capitalize + " borde ha dött för " + dd3.to_string + " sedan."
+      end
+      dd2 = DateTimeDiff.new(birthdate.to_datetime, nu)
+      puts dd2.diff.inspect
+      bonusstr = "."
+      if (dd2.years > dd.years) or 
+      (dd2.years == dd.years and dd2.months > dd.months) or
+      (dd2.years == dd.years and dd2.months == dd.months and dd2.days > dd.days)
+        bonusstr = ". "+name.capitalize+" är mer än halvvägs nu." 
+      end
+      verblist = ["dö", "kola", "trilla av pinn"]
+      verb = verblist.shuffle.first
+      name.capitalize + " beräknas "+ verb +" om " + dd.to_string + bonusstr 
+    end
     def rovare(msg)
-      rovarstr = 's/\([bcdfghjklmnpqrstvwxz]\)/\1o\1/g'
+      rovarstr = 's/\([bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ]\)/\1o\1/g'
       if msg.message.empty?
         msg.message = rovarstr
         sub(msg)
@@ -103,7 +142,7 @@ class SlaskPlugin < BasePlugin
     alias :åäö :skrivaao
 
     def skrivaoaueoeoe(msg) 
-      "Detta är Danska aaAAøØæÆ"
+      "Detta är Danska åÅøØæÆ"
     end
 
     def morse(msg)
@@ -120,7 +159,7 @@ class SlaskPlugin < BasePlugin
     end
 
     def rand(message)
-      '4'
+      "4"
     end
 
     def longjmp(msg)

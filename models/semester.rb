@@ -41,11 +41,11 @@ class Semester < ActiveRecord::Base
     starts_at = self.starts_at
     starts_at-= 1.day while Hday.is_holiday(starts_at.to_date - 1)
     work_time = Work.find_by_user_id_and_workday( self.user_id, starts_at.yesterday.wday)|| Work.find_by_user_id_and_workday(self.user_id, nil) || Work.default
-    starts_at-=(24-work_time.end_hour).hour-work_time.end_min.minutes if starts_at.hour == 0
+    starts_at-=(24-work_time.end_hour).hour-work_time.end_min.minutes if starts_at.localtime.hour == 0
     ends_at = self.ends_at
     ends_at+= 1.day while Hday.is_holiday(ends_at.to_date + 1)
     work_time = Work.find_by_user_id_and_workday( self.user_id, ends_at.yesterday.wday)|| Work.find_by_user_id_and_workday(self.user_id, nil) || Work.default
-    ends_at+=(work_time.start_hour.hour + work_time.start_min.minutes) if ends_at.hour == 0
+    ends_at+=(work_time.start_hour.hour + work_time.start_min.minutes) if ends_at.localtime.hour == 0
     if starts_at < now
       str+= 'i '
       slutstr = ' till.'

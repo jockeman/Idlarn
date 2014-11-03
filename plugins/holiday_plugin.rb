@@ -81,7 +81,7 @@ class HolidayPlugin < BasePlugin
 
     def dhelper(day,msg)
       y = yhelper(msg)
-      day +Hday.holidays_for_year(y)[day.downcase.to_sym].omsen
+      day +Hday.free_days_for_year(y)[day.downcase.to_sym].omsen
     end
 
     def yhelper(msg)

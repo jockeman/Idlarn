@@ -32,8 +32,9 @@ class Quote < ActiveRecord::Base
       q = case str
       when ''
         self.find(:first, :order => 'RANDOM()')
-      when '-1'
-        self.find :first, :order => 'id desc'
+      when /-[0-9]+/
+        o = -(str.to_i) - 1
+        self.find :first, order: 'id desc', offset: o
       when /[0-9]+/
         self.find str.to_i
       else

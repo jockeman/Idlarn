@@ -4,7 +4,7 @@ require 'shellwords'
 class UrlsPlugin < BasePlugin
 URLEX = /https?:\/\/[^ ]*/u
   def initialize()
-    @actions = ['old', 'oldz', 'oldest', 'oldscore', 'randomknug']
+    @actions = ['old', 'oldz', 'oldest', 'oldscore', 'randomknug', 'dagensknug']
     @regexps = [URLEX]
   end
 
@@ -41,7 +41,7 @@ URLEX = /https?:\/\/[^ ]*/u
       urs = msg.message.scan URLEX
       begin
       `cd /home/idlarn/slaskbilder/; /usr/bin/wget -b #{urs.first.shellescape}`
-      `cd /home/idlarn; /bin/echo #{urs.first.shellescape} > picbuff.tmp && /usr/bin/curl #{urs.first.shellescape} | /usr/bin/jp2a --width=55 - >> picbuff.tmp && /bin/cat picbuff.tmp >> picbuff.txt`
+      `cd /home/idlarn; /bin/echo #{urs.first.shellescape} > picbuff.tmp && /usr/bin/curl #{urs.first.shellescape} | /usr/bin/jp2a --colors --width=55 - >> picbuff.tmp && /bin/cat picbuff.tmp >> picbuff.txt`
       rescue StandardError => e
         puts e.message
       end
@@ -118,5 +118,6 @@ URLEX = /https?:\/\/[^ ]*/u
       k = Knug.first :order => "RANDOM()"
       k.url
     end
+    alias :dagensknug :randomknug
 #  end
 end

@@ -8,6 +8,7 @@ class WwwebPlugin < BasePlugin
     @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'sda', 'kris', 'titelffs', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag']
     @actions += ['snuten', 'farbrorblå', 'polisen','aina']
     @actions += ['callme', 'classname']
+    @actions += ['rubrlol']
     @actions += ['stenbocken', 'vattumannen', 'fiskarna', 'väduren', 'oxen', 'tvillingarna', 'kräftan', 'lejonet', 'jungfrun', 'vågen', 'skorpionen', 'skytten']
   end
 
@@ -86,25 +87,30 @@ class WwwebPlugin < BasePlugin
     def sda msg
       puts 'sda'
       #uri = 'http://marathon.speeddemosarchive.com/schedule'
-      uri = 'http://gamesdonequick.com/schedule'
-      doc = Nokogiri::HTML(open(uri).read)
+      begin
+        uri = 'http://gamesdonequick.com/schedule'
+        doc = Nokogiri::HTML(open(uri).read)
+      rescue
+        uri = 'https://gamesdonequick.com/schedule'
+        doc = Nokogiri::HTML(open(uri).read)
+      end
       #table = doc.xpath "//table[@id='runTable']/tbody"
       table = doc.xpath "//tbody[@id='runTable']"
       list = table[0].children.map{|r| r.children.map{|q| q.child.to_s}}
-      list.each{|r| r[0] = Time.parse(r[0].sub(/(\d+)\/(\d+)/, '\2/\1')+"-0500") unless r.empty?}
+      list.each{|r| r[1] = Time.parse(r[1].sub(/(\d+)\/(\d+)/, '\2/\1')+"-0600") unless r.empty?}
       #list.each{|r| r[0] = Time.parse(r[0]+"-0400") unless r.empty?}
       if msg.message
-        search = list.select{|r| !r.empty? && r[1].downcase.match(msg.message.downcase)}
-        now = search.select{|r| !r.empty? && r[0] < Time.now}.last
-        nex = search.select{|r| !r.empty? && r[0] > Time.now}.first
+        search = list.select{|r| !r.empty? && r[3].downcase.match(msg.message.downcase)}
+        now = search.select{|r| !r.empty? && r[1] < Time.now}.last
+        nex = search.select{|r| !r.empty? && r[1] > Time.now}.first
       else
-        now = list.select{|r| !r.empty? && r[0] < Time.now}.last
-        nex = list.select{|r| !r.empty? && r[0] > Time.now}.first
+        now = list.select{|r| !r.empty? && r[1] < Time.now}.last
+        nex = list.select{|r| !r.empty? && r[1] > Time.now}.first
       end
       basestr = "[%s] %s - %s, Tid: %s %s"
-      nowstr = basestr % [stringifytime(now[0]), *now[1..-1]] if now
+      nowstr = basestr % [stringifytime(now[1]), now[3], now[5], now[7], now[11]] if now
       #nowstr = "Nu: #{now[1]} - #{now[2]}, Tid: #{now[3]}"
-      nextstr = basestr % [stringifytime(nex[0]), *nex[1..-1]] if nex
+      nextstr = basestr % [stringifytime(nex[1]), nex[3], nex[5], nex[7], nex[11]] if nex
       #nextstr = "[#{nex[0].strftime "%H:%M"}] #{nex[1]} - #{nex[2]}, Tid: #{nex[3]}"
 #      "Now playing: #{now[1]}. Upcoming: [#{nex[0].strftime "%H:%M"}] #{nex[1]}"
       return [nowstr.strip, nextstr.strip] if nowstr && nextstr
@@ -131,7 +137,7 @@ class WwwebPlugin < BasePlugin
     def fiskarna msg
       horoskop('fiskarna')
     end
-   
+  
     def väduren msg
       horoskop('vaduren')
     end
@@ -225,6 +231,13 @@ class WwwebPlugin < BasePlugin
       #varr[1].split(":").last.strip
       [varr[0], varr[3], varr[4], varr[5], varr[6]].join(", ")
     end
+
+    def rubrlol(msg)
+      doc = Nokogiri::HTML(open('http://www.rubrikgeneratorn.se'))
+      varr = doc.xpath('//body/div').children.first.text
+      #varr[1].split(":").last.strip
+      varr
+    end
     
     def snölol(msg)
       doc = Nokogiri::HTML(open('http://celsius.met.uu.se/uppsala/obs.htm'))
@@ -314,7 +327,9 @@ class WwwebPlugin < BasePlugin
       doc = Nokogiri::HTML(open("http://www.smhi.se/weatherSMHI2/varningar/%s.xml" % klass))
       warnings = doc.xpath('//item')
       warning = warnings[i-1]
-      title = "[%d/%d] %s" % [i, warnings.length, warning.xpath('title').text.strip]
+      time = Time.parse(warning.xpath('pubdate').text.strip).strftime("%Y-%m-%d %H:%M")
+      header = warning.xpath('title').text.strip
+      title = "[%d/%d] %s %s" % [i, warnings.length, time, header]
       description = warning.xpath('description').text.strip
       [title, description]
     end
@@ -325,9 +340,12 @@ class WwwebPlugin < BasePlugin
       else
         i = 1
       end
-      doc = Nokogiri::HTML(open("http://polisen.se/Uppsala_lan/Aktuellt/RSS/Lokal-RSS---Handelser/Lokala-RSS-listor1/Handelser-RSS---Uppsala-lan/?feed=rss"))
-      snuten = doc.xpath('//item')
+      site = open("http://polisen.se/Uppsala_lan/Aktuellt/RSS/Lokal-RSS---Handelser/Lokala-RSS-listor1/Handelser-RSS---Uppsala-lan/?feed=rss")
+      doc = Nokogiri::HTML(site)
+      puts "nil!!!" if doc.nil?
+      snuten = doc.xpath('//item') 
       snut = snuten[i-1]
+      puts site.inspect if snut.nil?
       title = "[%d/%d] %s" % [i, snuten.length, snut.xpath('title').text.strip]
       description = snut.xpath('description').text.strip
       [title, description]

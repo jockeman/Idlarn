@@ -46,6 +46,8 @@ module Hday
     free = holidays_for_year(year)
     free[:julafton] = Date.new(year,12,24)
     free[:nyarsafton] = Date.new(year,12,30)
+    free[:midsommarafton] = get_midsommar(year).prev_day
+    free[:pingst] = get_easter(year)+7*7
     return free
   end
   def self.holidays_for_year(year) 
@@ -53,15 +55,13 @@ module Hday
     holidays = {
       :nyarsdagen => Date.new(year,1,1),
       :trettondagen => Date.new(year,1,6),
-      :forstamaj => Date.new(year, 5,1),
       :langfredag => easter-2,
       :paskdagen => easter,
       :annandagpask => easter+1,
+      :forstamaj => Date.new(year, 5,1),
       :kristiflygare => easter+5*7+4,
-      :pingst => easter+7*7,
       :nationaldagen => Date.new(year,6,6),
       :midsommar => get_midsommar(year),
-      :midsommarafton => get_midsommar(year).prev_day,
       :allhelgona => get_allhelgona(year),
       :juldagen => Date.new(year,12,25),
       :annandagen => Date.new(year,12,26),

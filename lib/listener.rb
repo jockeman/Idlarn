@@ -3,6 +3,7 @@ class Listener
   def initialize(q, irc)
     @que = q
     @irc = irc
+    @last_contact = Time.now
   end
 
   def stop!
@@ -20,13 +21,19 @@ class Listener
     @thr = Thread.new do
       while @running
         msg = @irc.read() rescue nil
-        next if msg.nil?
+        if msg.nil?
+          if Time.now - @last_contact > 10.minutes
+            @irc.reconnect() rescue nil
+          end
+          next
+        end
         parse_input(msg) rescue nil
       end
     end
   end
 
   def parse_input(msg)
+    @last_contact = Time.now
     case msg.strip
     when Regexps::PING
       pong($3)

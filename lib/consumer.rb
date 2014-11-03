@@ -103,7 +103,7 @@ class Consumer
         end
       end
     else 
-      all_caps = message.action && message.action.upcase == message.action
+      all_caps = message.action && message.action.downcase != message.action
       if Date.today.day == 22 && Date.today.month == 10
         all_caps = true
       end

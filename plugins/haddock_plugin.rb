@@ -34,8 +34,13 @@ class HaddockPlugin < BasePlugin
 
     def addinsult(msg)
       return nil unless msg.message
-      ins = Insult.create :insult => msg.message
       insultee = msg.user.nick
+      begin
+        msg.message % insultee
+      rescue
+        return nil
+      end
+      ins = Insult.create :insult => msg.message
       if ins.insult.match(/%S/)
         ins.insult.gsub!(/%S/,'%s')
         insultee.upcase!

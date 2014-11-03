@@ -3,7 +3,7 @@ class EchoPlugin < BasePlugin
   def initialize()
     @actions = ['echo']
   end
-  def self.echo(msg)
+  def echo(msg)
     msg.message
   end
 end

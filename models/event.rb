@@ -104,10 +104,11 @@ class Event < ActiveRecord::Base
   end
 
   def self.list
-    es = self.find_all_by_in_use true, :conditions => "starts_at IS NOT NULL"
-    es.each{|e| e['parsed_time'] = e.startar || (Time.now - 1000)}
+#    es = self.find_all_by_in_use true, :conditions => "starts_at IS NOT NULL"
+    es = self.where(in_use: true).where("starts_at IS NOT NULL")
+    #es.each{|e| e['parsed_time'] = e.startar || (Time.now - 1000)}
     nu = Time.now
-    es = es.select{|e| e['parsed_time'] > Time.now}
-    es = es.sort_by{|e| e['parsed_time']}
+    es = es.select{|e| (e.startar || (Time.now - 1000)) > Time.now}
+    es = es.sort_by{|e| (e.startar || (Time.now - 1000))}
   end
 end

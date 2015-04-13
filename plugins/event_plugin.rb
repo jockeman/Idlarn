@@ -1,7 +1,8 @@
 # coding: utf-8
 class EventPlugin < BasePlugin
   def initialize()
-    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån', 'födelsedag']
+    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån', 'födelsedag', 'age', 'ålder']
+    @actions+=['tisdag','onsdag','torsdag','lördag','söndag']
   end
 
   #class << self
@@ -111,6 +112,27 @@ class EventPlugin < BasePlugin
       friday(msg)
     end
 
+    def tisdag(msg)
+      return "Japp" if Time.now.tuesday?
+      return "Nix"
+    end
+    def onsdag(msg)
+      return "Japp" if Time.now.wednesday?
+      return "Nix"
+    end
+    def torsdag(msg)
+      return "Japp" if Time.now.thursday?
+      return "Nix"
+    end
+    def lördag(msg)
+      return "Japp" if Time.now.saturday?
+      return "Mja, men lillörda" if Time.now.wednesday?
+      return "Nix"
+    end
+    def söndag(msg)
+      return "Japp" if Time.now.sunday?
+      return "Nix"
+    end
     #alias :fredag :friday
 
     def lond(d=25)
@@ -161,7 +183,7 @@ class EventPlugin < BasePlugin
 
     def history(msg)
       es = Event.find_all_by_key msg.message.split.first, :order => :created_at
-      es.map{|e| ((e.in_use ? "=> " : "   ") +e.to_string+(e.user ? " ["+e.user.to_s+"]" : ""))}.uniq
+      es.map{|e| ((e.in_use ? "=> " : "   ") +e.to_string+(e.user ? " ["+e.user.to_s+"]" : "") + (e.created_at ? " (" + e.created_at.strftime("%Y-%m-%d") + ")" : ""))}.uniq
     end
 
     def birthdays(msg)
@@ -182,5 +204,26 @@ class EventPlugin < BasePlugin
       end
     end
     alias :födelsedag :birthdays
+
+    def age(msg)
+      if msg.message.empty?
+        user = msg.user.dbuser
+      else
+        user = User.fetch msg.message, false
+      end
+      if user.birthdate
+        years = 0
+        now = Date.today.to_datetime
+        while(now.years_ago(1) > user.birthdate)
+          years +=1
+          now = now.years_ago(1)
+        end
+        days = (now - user.birthdate.to_datetime).to_i
+        "%s är %s år och %s dagar" % [ user.to_s, years, days]
+      else
+        "Jag vet inte när %s är född" % user.to_s
+      end
+    end
+    alias :ålder :age
 #  end
 end

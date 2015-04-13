@@ -18,7 +18,7 @@ class Semester < ActiveRecord::Base
   end
 
   def self.get_semesters user
-    self.find_all_by_user_id user.id, :conditions => "ends_at > '#{Time.now}'", :order => :starts_at
+    self.where("ends_at > '#{Time.now}'").where(user_id: user.id).order(:starts_at)
   end
 
   def self.get_current

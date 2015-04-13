@@ -12,7 +12,7 @@ class HaddockPlugin < BasePlugin
       else
         h = Haddock.find :first, :conditions => "insult ilike '%#{msg.message}%'", :order => 'RANDOM()' 
       end
-      h.insult if h
+      "%s!" % h.insult.strip if h
     end
 
     def robin(msg)

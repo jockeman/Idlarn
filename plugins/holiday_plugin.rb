@@ -2,7 +2,7 @@
 class HolidayPlugin < BasePlugin
   require 'date'
   def initialize()
-    @actions = %w(fettisdag fettisdagen midsommar midsommarafton midsommardagen skärtorsdag skartorsdag skärtorsdag skärtorsdagen långfredag långfredagen langfredag påskafton paskafton påskdagen paskdagen kristiflygare nationaldagen pingst)
+    @actions = %w(fettisdag fettisdagen midsommar midsommarafton midsommardagen dymmelonsdag dymmelonsdagen skärtorsdag skartorsdag skärtorsdag skärtorsdagen långfredag långfredagen langfredag påskafton paskafton påskdagen paskdagen kristiflygare nationaldagen pingst)
   end
 
   #class << self
@@ -66,6 +66,15 @@ class HolidayPlugin < BasePlugin
     end
     alias :skärtorsdag :skartorsdag
     alias :skärtorsdagen :skartorsdag
+
+    def dymmelonsdag(msg)
+      y = msg.message.to_i if msg.message && msg.message.length > 0
+      y = Date.current.year if y.nil?
+      d = Hday.get_easter(y)
+      d = d.prev_day(4)
+      "Dymmelonsdag" + d.omsen
+    end
+    alias :dymmelonsdagen :dymmelonsdag
 
     def kristiflygare(msg)
       dhelper("Kristiflygare", msg)

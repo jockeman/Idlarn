@@ -1,3 +1,4 @@
+# coding: utf-8
 class Outgoing
   def initialize(channel, message, opts={})
     @channel = channel
@@ -7,8 +8,15 @@ class Outgoing
     `echo "[#{Time.now.strftime "%F %T"} | ME] #{@message}" >> /home/idlarn/log/#{@channel}.log` if @message
     end
 
-  def to_s(all_caps=false)
+  def to_s(all_caps=false, medo=nil, medk=nil)
     @message.upcase! if all_caps
+    if medo
+      @message = I18n.transliterate @message
+      @message = @message.gsub(/[aeiouyåäö]/,medo).gsub(/[AEIOUYÅÄÖ]/,medo.upcase)
+    end
+    if medk
+      @message = @message.gsub(/[bcdfghjklmnpqrstvwxz]/,medk).gsub(/[BCDFGHJKLMNPQRSTVWXZ]/,medk.upcase)
+    end
     if @priv
       "PRIVMSG %s :%s" % [@channel, @message]
     elsif @mode

@@ -3,18 +3,18 @@ class Users
     @users = {}
   end
 
-  def get(msg)
+  def get(msg, checkignore=true)
     key = build_key(msg.nick, msg.uname, msg.host)
     user = @users[key] ||= CachedUser.new(msg)
-    #user.ignore = true if msg.host == "h-198-37.a137.corp.bahnhof.se"
-    raise "Ignored user" if user.ignore == true || (user.ignore.class == Time && user.ignore > Time.now)
+    raise "Ignored user" if checkignore && (user.ignore == true || (user.ignore.class == Time && user.ignore > Time.now))
     user
   end
 
   def rename(msg)
     puts [msg.payload, msg.nick, msg.uname, msg.host].inspect
     key = build_key(msg.nick, msg.uname, msg.host)
-    user = @users.delete(key)
+    user = get(msg, false)
+    @users.delete(key)
     puts user.inspect
     user.rename(msg.payload)
     puts user.inspect

@@ -4,7 +4,7 @@ require 'shellwords'
 class UrlsPlugin < BasePlugin
 URLEX = /https?:\/\/[^ ]*/u
   def initialize()
-    @actions = ['old', 'oldz', 'oldest', 'oldscore', 'randomknug', 'dagensknug']
+    @actions = ['old', 'oldz', 'oldest', 'oldscore', 'oldscorep', 'randomknug', 'dagensknug']
     @regexps = [URLEX]
   end
 
@@ -23,7 +23,7 @@ URLEX = /https?:\/\/[^ ]*/u
       addmix(msg) if msg.message.downcase.scan(/dagens ?mix/).length > 0
       addmix(msg) if msg.message.downcase.scan(/dagens umpa/).length > 0
       addknug(msg) if msg.message.downcase.scan(/knug/).length > 0
-      save_img(msg) if msg.message.downcase.scan(/jpg|jpeg|png|gif|bmp/).length > 0
+      hash = save_img(msg) if msg.message.downcase.scan(/jpg|jpeg|png|gif|bmp/).length > 0
       urs = msg.message.scan URLEX
       urs.map do |ur|
         if (u = Url.compare(ur, msg))
@@ -45,6 +45,7 @@ URLEX = /https?:\/\/[^ ]*/u
       rescue StandardError => e
         puts e.message
       end
+      return nil
     end
 
     def addmix(msg)
@@ -55,7 +56,7 @@ URLEX = /https?:\/\/[^ ]*/u
       datum = (Time.now.to_date + 1).to_time
       dagstart = (datum.to_date - 1).to_time
 
-      if Mix.find_by_user_id msg.user.dbuser.id, :conditions => "created_at BETWEEN '%s' AND '%s'" % [dagstart, datum]
+      if Mix.where("created_at BETWEEN '%s' AND '%s'" % [dagstart, datum]).find_by_user_id msg.user.dbuser.id
         puts "Har redan postat idag"
         return nil
       end
@@ -102,16 +103,28 @@ URLEX = /https?:\/\/[^ ]*/u
     end
 
     def oldscore(msg)
-      users = User.find :all, :order => 'oldz desc', :limit => 10, :conditions => 'oldz > 0'
+      #users = User.find :all, :order => 'oldz desc', :limit => 10, :conditions => 'oldz > 0'
+      users = User.where("oldz > 0").order("oldz desc").limit(10).includes(:urls) 
       usrs = []
       users.each_with_index do |u, i|
-        pcount = u.urls.length + u.oldz.to_i
+        pcount = u.urls.count + u.oldz.to_i
         oldprcnt = u.oldz.to_f / pcount if pcount
         oldprcnt||=0
         oldprcnt = oldprcnt*100
         usrs << ("[%d] %s: %d/%d (%.1f%%)" % [i+1, u.to_s, u.oldz, (pcount||0), oldprcnt])
       end
       usrs.join(', ') unless usrs.empty?
+    end
+
+    def oldscorep(msg)
+      stats = Url.joins(:user).group(:user_id, :oldz).count
+      entries = stats.select{|k,v| v>50}.map{|k,v| [k.last.to_f/v ,k.first, k.last, v]}.sort[0..9]
+      usrs = []
+      entries.each_with_index do |e, i|
+        u = User.find e[1]
+        usrs << ("[%d] %s: %d/%d (%.1f%%)" % [i+1, u.to_s, e[2], e[3], e[0]*100])
+      end
+      usrs.join(', ') 
     end
 
     def randomknug(msg)

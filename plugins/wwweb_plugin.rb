@@ -5,7 +5,7 @@ require 'json'
 require 'zlib'
 class WwwebPlugin < BasePlugin
   def initialize()
-    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'sda', 'kris', 'titelffs', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag']
+    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'sda', 'gdq', 'agdq', 'kris', 'titelffs', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag']
     @actions += ['snuten', 'farbrorblå', 'polisen','aina']
     @actions += ['callme', 'classname']
     @actions += ['rubrlol']
@@ -17,7 +17,7 @@ class WwwebPlugin < BasePlugin
 
     def help(msg)
       case msg.message
-      when 'sda'
+      when 'sda', 'gdq', 'agdq'
         resp = ["http://gamesdonequick.com/schedule"]
         build_response(resp, msg)
       else
@@ -27,14 +27,17 @@ class WwwebPlugin < BasePlugin
 
 
     def ud msg
-      index = msg.message.gsub(/.*@(\d).*/, '\1').to_i
-      query = URI.encode msg.message.gsub(/@\d/,'').strip #.squeeze.strip
+      index = msg.message.gsub(/.* (\d+)$/, '\1').to_i
+      query = URI.encode msg.message.gsub(/ \d+$/,'').strip #.squeeze.strip
+      puts [index, query].inspect
       doc = open "http://www.urbandictionary.com/define.php?term=#{query}"
       nok = Nokogiri::HTML doc.read
-      definitions = nok.xpath("//div[@class='definition']")
+      definitions = nok.xpath("//div[@class='def-panel']")
       maxdef = definitions.length-1
       index = [maxdef, index].min
-      "[#{index}/#{maxdef}] " + definitions[index].children.map{|c| c.text}.join
+      #"[#{index}/#{maxdef}] " + definitions[index].children.map{|c| c.text}.join
+      "[#{index}/#{maxdef}] " + definitions[index].xpath("div[@class='meaning']").text.strip
+
     end
 
     def defcon msg
@@ -79,8 +82,9 @@ class WwwebPlugin < BasePlugin
 
     def vecka msg
       puts 'Vecka'
-      doc = Nokogiri::HTML(open("http://vecka.nu").read)
-      m = doc.xpath('//div[@id="hoz"]/div').children.to_s
+      #doc = Nokogiri::HTML(open("http://vecka.nu").read)
+      #m = doc.xpath('//div[@id="hoz"]/div').children.to_s
+      m = DateTime.now.cweek
       resp = "Det är vecka #{m}."
     end
 
@@ -97,26 +101,34 @@ class WwwebPlugin < BasePlugin
       #table = doc.xpath "//table[@id='runTable']/tbody"
       table = doc.xpath "//tbody[@id='runTable']"
       list = table[0].children.map{|r| r.children.map{|q| q.child.to_s}}
-      list.each{|r| r[1] = Time.parse(r[1].sub(/(\d+)\/(\d+)/, '\2/\1')+"-0600") unless r.empty?}
+      list.each{|r| r[1] = Time.parse(r[1].sub(/(\d+)\/(\d+)/, '\2/\1')+"-0500") unless r.empty?}
       #list.each{|r| r[0] = Time.parse(r[0]+"-0400") unless r.empty?}
-      if msg.message
-        search = list.select{|r| !r.empty? && r[3].downcase.match(msg.message.downcase)}
+      hits = []
+      if !msg.message.empty?
+        search = list.select{|r| !r.empty? && (r[3].downcase.match(msg.message.downcase) || r[13].downcase.match(msg.message.downcase))}
         now = search.select{|r| !r.empty? && r[1] < Time.now}.last
         nex = search.select{|r| !r.empty? && r[1] > Time.now}.first
+        hits = search[0..4]
       else
         now = list.select{|r| !r.empty? && r[1] < Time.now}.last
         nex = list.select{|r| !r.empty? && r[1] > Time.now}.first
+        hits = [now, nex]
       end
       basestr = "[%s] %s - %s, Tid: %s %s"
-      nowstr = basestr % [stringifytime(now[1]), now[3], now[5], now[7], now[11]] if now
+      nowstr = basestr % [stringifytime(now[1]), now[3], now[5], now[9], now[13]] if now
       #nowstr = "Nu: #{now[1]} - #{now[2]}, Tid: #{now[3]}"
-      nextstr = basestr % [stringifytime(nex[1]), nex[3], nex[5], nex[7], nex[11]] if nex
+      nextstr = basestr % [stringifytime(nex[1]), nex[3], nex[5], nex[9], nex[13]] if nex
+      strs = hits.map{|h| basestr % [stringifytime(h[1]), h[3], h[5], h[9], h[13]]}
       #nextstr = "[#{nex[0].strftime "%H:%M"}] #{nex[1]} - #{nex[2]}, Tid: #{nex[3]}"
 #      "Now playing: #{now[1]}. Upcoming: [#{nex[0].strftime "%H:%M"}] #{nex[1]}"
+      return strs
       return [nowstr.strip, nextstr.strip] if nowstr && nextstr
       return nowstr.strip if nowstr
       return nextstr.strip if nextstr
     end
+
+    alias :gdq :sda
+    alias :agdq :sda
 
     def stringifytime(time)
       if time.to_date == Date.today
@@ -340,7 +352,7 @@ class WwwebPlugin < BasePlugin
       else
         i = 1
       end
-      site = open("http://polisen.se/Uppsala_lan/Aktuellt/RSS/Lokal-RSS---Handelser/Lokala-RSS-listor1/Handelser-RSS---Uppsala-lan/?feed=rss")
+      site = open("https://polisen.se/Uppsala_lan/Aktuellt/RSS/Lokal-RSS---Handelser/Lokala-RSS-listor1/Handelser-RSS---Uppsala-lan/?feed=rss")
       doc = Nokogiri::HTML(site)
       puts "nil!!!" if doc.nil?
       snuten = doc.xpath('//item') 

@@ -2,7 +2,7 @@
 class KattPlugin < BasePlugin
   def initialize()
     @actions = ['katt']
-    @regexps = [/^katt åt .*$/]
+    @regexps = [/^[kK]att åt .*$/]
   end
 
 #  class << self

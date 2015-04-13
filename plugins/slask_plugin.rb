@@ -5,10 +5,13 @@ class SlaskPlugin < BasePlugin
   SUBEX = /^s\/.*\/.*\//
   GSUBEX = /^s\/.*\/.*\/g$/
   OMSTART = /omstart,.?$/
+  MEDO = /^(.*)med ([aeiouyåäöAEIOUYÅÄÖéèûîüôÉÈÎÛÏÜÔâÂ])$/i
+  MEDK = /^(.*)med ([bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ])$/i
+  REV = /^(.*) baklänges$/
   def initialize()
     @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'skrivaao', 'skrivåäö', 'åäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension', 'beatlön', 'pi', 'dopparedan','frdg', 'ångest']
     @actions += ['veme', 'vemär']
-    @regexps = [SUBEX, GSUBEX, OMSTART]
+    @regexps = [SUBEX, GSUBEX, OMSTART, MEDO, MEDK, REV]
   end
 
   #class << self
@@ -24,10 +27,24 @@ class SlaskPlugin < BasePlugin
           build_response(sub(message), message)
         elsif message.message=~GSUBEX
           build_response(sub(message, true), message)
+        elsif message.message=~MEDO
+          build_response(medo(message), message)
+        elsif message.message=~MEDK
+          build_response(medk(message), message)
+        elsif message.message=~REV
+          build_response(rev(message), message)
         else
           super
         end
       end
+    end
+
+    def help(message)
+      puts "halp"
+      if(message.message=~MEDO)
+        build_response("", message)  
+      end
+      super
     end
 
     def sub(msg, g=false)
@@ -46,6 +63,31 @@ class SlaskPlugin < BasePlugin
     #  raise e
     end
     
+    def medo(msg)
+      puts "med ö"
+      msg.message=~MEDO
+      repl = $1
+      repl = I18n.transliterate repl
+      sub = $2
+      repl.gsub(/[aeiouyåäö]/,sub).gsub(/[AEIOUYÅÄÖ]/,sub.upcase)
+    end
+
+    def medk(msg)
+      puts "med k"
+      msg.message=~MEDK
+      repl = $1
+      sub = $2
+      repl.gsub(/[bcdfghjklmnpqrstvwxz]/,sub).gsub(/[BCDFGHJKLMNPQRSTVWXZ]/,sub.upcase)
+    end
+
+    def rev(msg)
+      puts "baklänges"
+      msg.message=~REV
+      repl = $1
+      "%s blir %s baklänges" % [repl, repl.reverse]
+      repl.reverse
+    end
+
     def pension(msg)
       name = "du"
       u = msg.user.dbuser
@@ -231,6 +273,7 @@ class SlaskPlugin < BasePlugin
     alias :öl :oel
 
     def space()
+      return 'http://spaccccccccccccccccccce.ytmnd.com/'
       return 'http://spaaaaaaaaaaaaaaaaaaaaaaaccee.com/'
     end
 

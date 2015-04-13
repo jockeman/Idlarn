@@ -1,5 +1,5 @@
 class Message
-  attr_reader :user, :channel, :message, :action
+  attr_accessor :user, :channel, :message, :action
   def initialize(user, raw_message)
     @user = user
     @channel = raw_message.channel

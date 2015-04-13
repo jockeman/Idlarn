@@ -1,12 +1,13 @@
 class ICF
   attr_accessor :irc
-  attr_reader :consumer, :listener
+  attr_reader :consumer, :listener, :poster
   def initialize(host='irc.homelien.no', port=6667)
     @irc = IRC.new(host, port)
     @q = []
-    @plugins = %w(slask event quote gay wwweb urls haddock tele holiday cmds)
+    @plugins = %w(slask event quote gay wwweb urls haddock tele holiday cmds semester karma mix katt)
     @listener = Listener.new(@q, @irc)
     @consumer = Consumer.new(@q, @irc, @plugins)
+    @poster = Poster.new(@irc)
     self.run!
   end
 
@@ -14,10 +15,12 @@ class ICF
     @irc.disconnect qmsg
     @listener.stop!
     @consumer.stop!
+    @poster.stop!
   end
   def run!
     @listener.run!
     @consumer.run!
+    @poster.run!
   end
 
   def join(chan)
@@ -44,12 +47,20 @@ class ICF
     @consumer.run!
   end
 
+  def reload_poster!(path='poster')
+    @poster.stop! if @poster
+    load File.join('lib/%s.rb' % path)
+    @poster = Poster.new(@q, @irc, @plugins)
+    @poster.run!
+  end
+
   def reload_irc!(host=@irc.host, port=@irc.port,path='irc')
     stop!
     load File.join('lib/%s.rb' % path) rescue nil
     @irc = IRC.new(host, port)
     @listener.irc = @irc
     @consumer.irc = @irc
+    @poster.irc = @irc
     run!
   end
 

@@ -32,13 +32,14 @@ class IRC
     send_message "NICK #{@nick}"
   end
 
-  def send_message(msg, all_caps=false)
+  def send_message(msg, all_caps=false, medo=nil, medk=nil)
     return if msg.nil?
     begin
-      @irc.puts("%s\r\n" % msg.to_s(all_caps))
+      message = msg.to_s(all_caps, medo, medk)
     rescue
-      @irc.puts("%s\r\n" % msg.to_s)
+      message = msg.to_s
     end
+    @irc.puts("%s\r\n" % message)
     puts "--> %s" % msg
   end
 
@@ -65,7 +66,7 @@ private
     print "Connecting"
     @irc = TCPSocket.open(@host, @port)
     print "Connected"
-    send_message "USER #{@uname} 0 * :#{@name}"
+    send_message "USER #{@uname} 8 * :#{@name}"
     send_message "NICK #{@nick}"
   rescue
     nil

@@ -1,15 +1,18 @@
+# coding: utf-8
 class Consumer
   require 'fiber_pool'
   attr_accessor :irc
   attr_reader :users
   attr_accessor :fp
+  MEDO = /^(.*)med ([aeiouyåäöAEIOUYÅÄÖéèûîüôÉÈÎÛÏÜÔâÂ])$/i
+  MEDK = /^(.*)med ([bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ])$/i
   def initialize(q, irc, plugins=nil)
     @que = q
     @irc = irc
     @users = Users.new
     @plugins = {}
     @regexps = {}
-    plugins = %w(slask event quote gay wwweb urls haddock tele holiday cmds semester karma mix) unless plugins
+    plugins = %w(slask event quote gay wwweb urls haddock tele holiday cmds semester karma mix katt) unless plugins
     plugins.each{|p| self.load_plugin(p)}
   end
 
@@ -108,13 +111,50 @@ class Consumer
         all_caps = true
       end
       message.action.downcase! if message.action
+      action = message.action
+      if message.action && message.message=~MEDO
+        medo = $2
+        message.message = message.message.gsub('med '+medo, '')
+      end
+      if message.action && message.message=~MEDK
+        medk = $2
+        message.message = message.message.gsub('med '+medk, '')
+      end
+      moar = false
+      if message.action == 'moar'
+        moar = true
+        ah = ActionHistory.where("action <> 'moar'").last 
+        puts ah.inspect
+        message.action = ah.action
+        message.message = ah.parameters
+        if medo
+          message.message+ 'med '+medo
+        end
+        if medk
+          message.message+ 'med '+medk
+        end
+      end
       plugin = find_plugin message.action
-      plugin = @regexps.select{|r,p| message.message=~r}.values.first if plugin.nil? && message.action.nil? 
+      plugin = @regexps.select{|r,p| message.message=~r}.values.first if plugin.nil? && action.nil? 
       if plugin
         ActionHistory.create :user_id => message.user.dbid, :action => message.action, :parameters => message.message
         p = BasePlugin.const_get(plugin).new
         p.nick = @irc.nick
-        responses = p.action(message)
+        responses = p.action(message) rescue nil
+      end
+      if moar && !responses
+        responses = ["."+message.action+" "+message.message ]
+        opts = {}
+        if message.channel!=@irc.nick
+          resp_to = message.channel
+          opts[:priv]|= false
+        else
+          resp_to = message.user.nick
+          opts[:priv]|= true
+        end
+        responses = responses.map do |resp|
+          Outgoing.new(resp_to, resp, opts)
+        end
       end
     end
     if responses
@@ -125,9 +165,8 @@ class Consumer
         return nil
       end
       responses = [responses] unless responses.kind_of? Array
-      print all_caps
       responses.each do |response|
-        @irc.send_message response, all_caps
+        @irc.send_message response, all_caps, medo, medk
       end
     else
       message.user.previous[message.channel] = message.message

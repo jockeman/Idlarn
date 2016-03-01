@@ -32,7 +32,7 @@ class CachedUser
   end
 
   def authenticate(password)
-    return false unless password == 'sillar'
+    return false unless User.find(@dbid).authenticate(password)
     @authenticated = true
   end
 end

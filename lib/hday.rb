@@ -4,6 +4,7 @@ module Hday
  
   def self.is_holiday(date)
     date = date.to_date
+    return false if date.year < 1000
     return true if [6,7].include? date.cwday
     holidays = free_days_for_year(date.year)
     holidays.values.include?(date)

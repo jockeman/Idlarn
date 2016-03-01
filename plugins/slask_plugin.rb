@@ -9,7 +9,7 @@ class SlaskPlugin < BasePlugin
   MEDK = /^(.*)med ([bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ])$/i
   REV = /^(.*) baklänges$/
   def initialize()
-    @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'skrivaao', 'skrivåäö', 'åäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension', 'beatlön', 'pi', 'dopparedan','frdg', 'ångest']
+    @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'skrivaao', 'skrivåäö', 'åäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension', 'beatlön', 'pi', 'dopparedan','frdg', 'ångest', 'blodgrupp', 'ts']
     @actions += ['veme', 'vemär']
     @regexps = [SUBEX, GSUBEX, OMSTART, MEDO, MEDK, REV]
   end
@@ -88,6 +88,32 @@ class SlaskPlugin < BasePlugin
       repl.reverse
     end
 
+    def blodgrupp(msg)
+      name = "du"
+      u = msg.user.dbuser
+      if msg.message.length > 0
+        if !(u = User.fetch(msg.message, false)).nil?
+          print "Hittade"
+          print u.inspect
+          name = u.to_s
+        else
+          print "År"
+          blodgrupp = validate_blodgrupp(msg.message)
+          msg.user.dbuser.bloodtype = blodgrupp
+          msg.user.dbuser.save
+          u = msg.user.dbuser
+        end
+      end
+      blodgrupp = u.bloodtype
+      return "Jag vet inte vad "+name+" har för blodgrupp" if blodgrupp.nil?
+      name.capitalize + " har blodgrupp " + blodgrupp 
+    end
+
+    def validate_blodgrupp(str)
+      str.upcase!
+      return str if str.match(/(0|A|B|AB)[+-]/)
+    end
+
     def pension(msg)
       name = "du"
       u = msg.user.dbuser
@@ -142,9 +168,29 @@ class SlaskPlugin < BasePlugin
       end
       birthdate = u.birthdate
       return "Jag vet inte när "+name+" är född" if birthdate.nil?
-
-      pday = birthdate.to_datetime.next_year(81.1)
       nu = DateTime.now
+      age = DateTimeDiff.new(u.birthdate, nu)
+      puts age.diff.inspect
+      if(age.years > 50)
+        file = "static/lifeexpect50.csv"
+      elsif(age.years > 20)
+        file = "static/lifeexpect20.csv"
+      else
+        file = "static/lifeexpect.csv"
+      end
+      afile = File.open(file)
+      headers = afile.readline.split
+      ages = afile.readline.split
+      ahash = {}
+      pday = birthdate.to_datetime.next_year(81.1)
+      headers.each_with_index do |span, i|
+        years = span.split(",")
+        if u.birthdate.year > years.first.to_i && u.birthdate.year <= years.last.to_i
+          expect = ages[i].to_f
+          puts "Found age span: " + years.inspect + "with expectancy of " + expect.to_s
+          pday = birthdate.to_datetime.next_year(expect)
+        end
+      end
       dd = DateTimeDiff.new(nu, pday)
       puts dd.diff.inspect
       if dd.years < 0
@@ -215,12 +261,17 @@ class SlaskPlugin < BasePlugin
     def halt(msg)
       'Hammerzeit!'
     end
+    def ts(msg)
+      DateTime.now.to_i.to_s
+    end
+
 
     def tid(msg)
       t = Time.now
       t.utc
       t += 3600
-      it = (1000*(t.hour+(t.min+t.sec/60.0)/60.0)/24).round
+      #it = (1000*(t.hour+(t.min+t.sec/60.0)/60.0)/24).floor
+      it = ((t.sec+t.min*60+t.hour*3600)/86.4).floor
       '@'+it.to_s
     end
 
@@ -297,7 +348,7 @@ class SlaskPlugin < BasePlugin
       daydiff = Date.new(Date.current.year,12,24) - Date.today
       daydiff = Date.new(Date.current.year+1,12,24) - Date.today if daydiff < 0
       puts daydiff
-      return daydiff.to_i.to_s + "x dan före dopparedan" if daydiff > 20
+      return daydiff.to_i.to_s + "x dan före dopparedan" if daydiff > 36
       ("Idag är det " + (0...(daydiff)).map{|o| 'dan före'}.join(" ") + " dopparedan.").capitalize
     end
 #  end

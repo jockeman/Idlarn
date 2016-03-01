@@ -30,7 +30,11 @@ URLEX = /https?:\/\/[^ ]*/u
           usr = msg.user.dbuser
           usr.oldz = usr.oldz.to_i+1
           usr.save
-          "Jösses Amalia vad ute du är, " + u.to_hip
+          if (Time.now.years_ago(2) - u.created_at) > 0
+            "Jösses Amalia vad retro du är, " + u.to_hip
+          else
+            "Jösses Amalia vad ute du är, " + u.to_hip
+          end
         end
       end.compact
     end
@@ -41,7 +45,7 @@ URLEX = /https?:\/\/[^ ]*/u
       urs = msg.message.scan URLEX
       begin
       `cd /home/idlarn/slaskbilder/; /usr/bin/wget -b #{urs.first.shellescape}`
-      `cd /home/idlarn; /bin/echo #{urs.first.shellescape} > picbuff.tmp && /usr/bin/curl #{urs.first.shellescape} | /usr/bin/jp2a --colors --width=55 - >> picbuff.tmp && /bin/cat picbuff.tmp >> picbuff.txt`
+      `cd /home/idlarn; /bin/echo #{urs.first.shellescape} > picbuff.tmp && /usr/bin/curl #{urs.first.shellescape} | convert - jpg:- | /usr/bin/jp2a --colors --width=55 - >> picbuff.tmp && /bin/cat picbuff.tmp >> picbuff.txt`
       rescue StandardError => e
         puts e.message
       end
@@ -73,8 +77,13 @@ URLEX = /https?:\/\/[^ ]*/u
     end
 
     def old(msg)
+      c = msg.channel
       message = Url.normalize msg.message
-      oldz = Url.find :first, :conditions => "url ILIKE '%#{message}%'" , :order => 'RANDOM()'
+      if c != @nick
+        oldz = Url.where("url ILIKE '%#{message}%'").where(channel: c).order('RANDOM()').first
+      else
+        oldz = Url.where("url ILIKE '%#{message}%'").order('RANDOM()').first
+      end
       url = oldz.url
       url = 'http://'+ url unless url=~/^http/
       url + ' ' + oldz.to_s(1) if oldz
@@ -118,7 +127,7 @@ URLEX = /https?:\/\/[^ ]*/u
 
     def oldscorep(msg)
       stats = Url.joins(:user).group(:user_id, :oldz).count
-      entries = stats.select{|k,v| v>50}.map{|k,v| [k.last.to_f/v ,k.first, k.last, v]}.sort[0..9]
+      entries = stats.select{|k,v| v>50}.map{|k,v| [k.last.to_f/(v+k.last) ,k.first, k.last, v+k.last]}.sort[0..9]
       usrs = []
       entries.each_with_index do |e, i|
         u = User.find e[1]

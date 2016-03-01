@@ -5,10 +5,13 @@ require 'json'
 require 'zlib'
 class WwwebPlugin < BasePlugin
   def initialize()
-    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'sda', 'gdq', 'agdq', 'kris', 'titelffs', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag']
+    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'sda', 'gdq', 'agdq', 'sgdq', 'esa', 'kris', 'titelffs', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag']
     @actions += ['snuten', 'farbrorblå', 'polisen','aina']
-    @actions += ['callme', 'classname']
-    @actions += ['rubrlol']
+    @actions += ['callme', 'classname', 'robiname']
+    @actions += ['callmedock', 'hadmedock', 'classmedock', 'robimedock']
+    @actions += ['callmebin', 'hadmebin', 'classmebin', 'robimebin']
+    @actions += ['callmename', 'hadmename', 'classmename', 'robimename']
+    @actions += ['rubrlol', 'vadspela', 'vadspelalinux']
     @actions += ['stenbocken', 'vattumannen', 'fiskarna', 'väduren', 'oxen', 'tvillingarna', 'kräftan', 'lejonet', 'jungfrun', 'vågen', 'skorpionen', 'skytten']
   end
 
@@ -50,6 +53,30 @@ class WwwebPlugin < BasePlugin
       doc = Nokogiri::HTML(open("http://vansbro.doppio.se").read)
       temp = doc.xpath('//div[@id="block-vansbro-api-vattentemp"]/div/div/span').children.first.to_s
       "Det är #{temp} grader i vattnet"
+    end
+
+    def vadspelalinux msg
+      "nethack"
+    end
+
+    def vadspela msg
+      u = msg.user.dbuser
+      if msg.message.length > 0
+          username = msg.message
+          msg.user.dbuser.steamid = username
+          msg.user.dbuser.save
+          u = msg.user.dbuser
+      end
+      #get steamid
+      return "Jag vet inte vad du har för steamid" if u.steamid.nil?
+      url = "http://whatshouldiplayonsteam.com/"
+      if(u.steamid.match(/^\d+$/))
+        url+="profiles/"+u.steamid
+      else
+        url+="id/"+u.steamid
+      end
+      doc = Nokogiri::HTML(open(url).read)
+      "Du kan väl spela " + doc.xpath("//img").last["alt"].gsub(/^'/,"").gsub(/' logo/,"")
     end
 
     def moln msg
@@ -101,11 +128,12 @@ class WwwebPlugin < BasePlugin
       #table = doc.xpath "//table[@id='runTable']/tbody"
       table = doc.xpath "//tbody[@id='runTable']"
       list = table[0].children.map{|r| r.children.map{|q| q.child.to_s}}
-      list.each{|r| r[1] = Time.parse(r[1].sub(/(\d+)\/(\d+)/, '\2/\1')+"-0500") unless r.empty?}
+      #list.each{|r| r[1] = Time.parse(r[1].sub(/(\d+)\/(\d+)/, '\2/\1')+"-0400") unless r.empty?}
+      list.each{|r| r[1] = Time.parse(r[1]) unless r.empty?}
       #list.each{|r| r[0] = Time.parse(r[0]+"-0400") unless r.empty?}
       hits = []
       if !msg.message.empty?
-        search = list.select{|r| !r.empty? && (r[3].downcase.match(msg.message.downcase) || r[13].downcase.match(msg.message.downcase))}
+        search = list.select{|r| !r.empty? && (!r[3].nil? && r[3].downcase.match(msg.message.downcase) || !r[13].nil? && r[13].downcase.match(msg.message.downcase))}
         now = search.select{|r| !r.empty? && r[1] < Time.now}.last
         nex = search.select{|r| !r.empty? && r[1] > Time.now}.first
         hits = search[0..4]
@@ -115,10 +143,10 @@ class WwwebPlugin < BasePlugin
         hits = [now, nex]
       end
       basestr = "[%s] %s - %s, Tid: %s %s"
-      nowstr = basestr % [stringifytime(now[1]), now[3], now[5], now[9], now[13]] if now
+      nowstr = basestr % [stringifytime(now[1]), now[3], now[5], now[7], now[13]] if now
       #nowstr = "Nu: #{now[1]} - #{now[2]}, Tid: #{now[3]}"
-      nextstr = basestr % [stringifytime(nex[1]), nex[3], nex[5], nex[9], nex[13]] if nex
-      strs = hits.map{|h| basestr % [stringifytime(h[1]), h[3], h[5], h[9], h[13]]}
+      nextstr = basestr % [stringifytime(nex[1]), nex[3], nex[5], nex[7], nex[13]] if nex
+      strs = hits.compact.map{|h| basestr % [stringifytime(h[1]), h[3], h[5], h[7], h[13]]}
       #nextstr = "[#{nex[0].strftime "%H:%M"}] #{nex[1]} - #{nex[2]}, Tid: #{nex[3]}"
 #      "Now playing: #{now[1]}. Upcoming: [#{nex[0].strftime "%H:%M"}] #{nex[1]}"
       return strs
@@ -129,12 +157,54 @@ class WwwebPlugin < BasePlugin
 
     alias :gdq :sda
     alias :agdq :sda
+    alias :sgdq :sda
+
+
+    def esa msg
+      puts 'esa'
+      uri = 'https://horaro.org/preesa/schedule'
+      doc = Nokogiri::HTML(open(uri).read)
+      rows = doc.xpath "//tbody/tr"
+      list = rows.map do |row|
+        timestring = row.children[1].child["datetime"]
+        next if !timestring
+        time = Time.parse(timestring)
+        game = row.children[3].child.to_s
+        runner = row.children[7].child.to_s
+        estimate = row.children[5].child.child.to_s
+        extra = row.children[13].child.to_s
+        [time, game, runner, estimate, extra]
+      end.compact
+
+      hits = []
+      if !msg.message.empty?
+        search = list.select{|r| !r.empty? && (!r[1].nil? && r[1].downcase.match(msg.message.downcase) || !r[4].nil? && r[4].downcase.match(msg.message.downcase))}
+        now = search.select{|r| !r.empty? && r[0] < Time.now}.last
+        nex = search.select{|r| !r.empty? && r[0] > Time.now}.first
+        hits = search[0..4]
+      else
+        now = list.select{|r| !r.empty? && r[0] < Time.now}.last
+        nex = list.select{|r| !r.empty? && r[0] > Time.now}.first
+        hits = [now, nex]
+      end
+      basestr = "[%s] %s - %s, Tid: %s %s"
+      nowstr = basestr % [stringifytime(now[0]), now[1], now[2], now[3], now[4]] if now
+      #nowstr = "Nu: #{now[1]} - #{now[2]}, Tid: #{now[3]}"
+      nextstr = basestr % [stringifytime(nex[0]), nex[1], nex[2], nex[3], nex[4]] if nex
+      strs = hits.compact.map{|h| basestr % [stringifytime(h[0]), h[1], h[2], h[3], h[4]]}
+      #nextstr = "[#{nex[0].strftime "%H:%M"}] #{nex[1]} - #{nex[2]}, Tid: #{nex[3]}"
+#      "Now playing: #{now[1]}. Upcoming: [#{nex[0].strftime "%H:%M"}] #{nex[1]}"
+      return strs
+      return [nowstr.strip, nextstr.strip] if nowstr && nextstr
+      return nowstr.strip if nowstr
+      return nextstr.strip if nextstr
+    end
 
     def stringifytime(time)
       if time.to_date == Date.today
-        time.strftime("%H:%M")
+        time.localtime.strftime("%H:%M")
       else
-        time.strftime("%d/%m %H:%M")
+        time.localtime.strftime("%d/%m %H:%M")
       end
     end
 
@@ -193,6 +263,7 @@ class WwwebPlugin < BasePlugin
     end
 
     def mat(msg)
+      return
       uri = URI('http://www.vadihelveteskajaglagatillmiddag.nu/')
       if msg.message == 'gräs'
         uri.path = uri.path+'vegan'
@@ -278,6 +349,10 @@ class WwwebPlugin < BasePlugin
     def classname(msg)
       doc = Nokogiri::HTML(open('http://www.classnamer.com/'))
       doc.xpath("//p[@id='classname']").text
+    end
+
+    def robiname(msg)
+      "Holy %s, Batman!" % classname(msg)
     end
 
     def dagensdag(msg)
@@ -367,12 +442,11 @@ class WwwebPlugin < BasePlugin
     alias :farbrorblå :snuten
     alias :aina :snuten
 
-    def callme(msg)
+    def callverb()
       def Choose(arr)
         return arr[(rand()*arr.length).floor]
       end
-
-     'Well '+ Choose(['slap','fuck','spank','smack',
+      Choose(['slap','fuck','spank','smack',
      'pinch','rub','mock','squeeze','suck','bite',
      'bite off','chew','lick','flap','stroke',
      'touch','smell','sniff','jizz on','rub one out on',
@@ -387,7 +461,13 @@ class WwwebPlugin < BasePlugin
      'google','stick your dick in','prance around in',
      'make your way inside','plunder','swiggity','eat',
      'stuff','hump','humiliate','blow','blow up','fancy',
-     'berate','rate','rustle'])+ ' my '+ Choose(['tits',
+     'berate','rate','rustle'])
+    end
+    def callsub()
+      def Choose(arr)
+        return arr[(rand()*arr.length).floor]
+      end
+      Choose(['tits',
      'ass','dick','mouth','face','balls','cock','crotch',
      'face','beard','moustache','buns','boobs','boobies',
      'breasts','chest','butt','buttocks','nips','nipples',
@@ -397,13 +477,79 @@ class WwwebPlugin < BasePlugin
      'goat','dog','parrot','steak','cheese','hose','goatee',
      'sideburns','sandwich','booty','mother','father',
      'grand-parents','neighbor','shiggity','dinner','shizzle',
-     'bunny','evil twin','thing','pickle','nutsack'])+' and call me '+ Choose([
+     'bunny','evil twin','thing','pickle','nutsack'])
+    end
+
+    def callname()
+      def Choose(arr)
+        return arr[(rand()*arr.length).floor]
+      end
+      Choose([
      'Shirley','Sally','Dolly','Pedro','Jose','Juanita',
      'Sharon','Geoffrey','Susan','Mary','Stanley','Bradley',
      'Barney','Brandon','Milford','Robert','Rosie','Steve',
      'Patrick','Jeffrey','Brian','David','Santa','Batman',
      'mommy','daddy','grandpa','grandma','auntie','uncle',
-     'pretty','maybe','when you\'re home','when you\'re done','darling','fabulous'])+'.' 
+     'pretty','maybe','when you\'re home','when you\'re done','darling','fabulous'])
     end
-#  end
+
+    def _callme(verb, subst, name)
+     'Well '+ verb+ ' my '+ subst + ' and call me '+ name
+    end
+    def _haddock()
+      Haddock.order('RANDOM()').first.insult.strip.downcase
+    end
+    def _robin()
+      Robin.order('RANDOM()').first.comment
+    end
+
+    def robimedock(msg)
+      _callme(callverb(), _robin(), _haddock())
+    end
+    def callmebin(msg)
+      _callme(callverb(), _robin(), callname())
+    end
+
+    def classmedock(msg)
+      c = classname(msg)
+      h2 = _haddock()
+      _callme(callverb(), c, h2.downcase)
+    end
+
+    def hadmedock(msg)
+      h = _haddock
+      h2 = _haddock
+      _callme(callverb(), h.downcase, h2.downcase)
+    end
+
+    def callmedock(msg)
+      h = _haddock
+      _callme(callverb(), callsub(), h.downcase)
+    end
+    def hadmebin(msg)
+      _callme(callverb(), _haddock, _robin)
+    end
+    def classmebin(msg)
+      _callme(callverb(), classname(msg), _robin)
+    end
+    def robimebin(msg)
+      _callme(callverb(), _robin, _robin)
+    end
+    def callmename(msg)
+      _callme(callverb(), callsub(), classname(msg))
+    end
+    def hadmename(msg)
+      _callme(callverb(), _haddock, classname(msg))
+    end
+    def classmename(msg)
+      _callme(callverb(), classname(msg), classname(msg))
+    end
+    def robimename(msg)
+      _callme(callverb(), _robin, classname(msg))
+    end
+
+
+    def callme(msg)
+     _callme(callverb(), callsub(), callname())
+    end
 end

@@ -1,7 +1,7 @@
 # coding: utf-8
 class EventPlugin < BasePlugin
   def initialize()
-    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån', 'födelsedag', 'age', 'ålder']
+    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån', 'födelsedag', 'nästa_födelsedag', 'age', 'ålder']
     @actions+=['tisdag','onsdag','torsdag','lördag','söndag']
   end
 
@@ -204,6 +204,20 @@ class EventPlugin < BasePlugin
       end
     end
     alias :födelsedag :birthdays
+
+
+    def next_birthdays(msg)
+      day = Date.today
+      users = []
+      loop do
+        users = User.where("extract(MONTH from birthdate) = #{day.month} AND extract(DAY FROM birthdate) = #{day.day}")
+        break if !users.empty? || day > Date.today.months_since(12)
+        day = day + 1
+      end
+      return "Jag känner ingen som fyller år. :(" if users.empty?
+      "Nästa att fylla år är: " + users.map{|u| u.to_s}.join(" och ") + ', ' + users.first.birthdate.strftime("%-d/%-m")
+    end
+    alias :nästa_födelsedag :next_birthdays
 
     def age(msg)
       if msg.message.empty?

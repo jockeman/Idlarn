@@ -45,7 +45,7 @@ private
     end
     resp = [resp] unless resp.class == Array
     resp = resp.map{|r| r.gsub("%self", @nick)}
-    resp.map{|r| Outgoing.new(resp_to, r.strip, opts)}
+    resp.map{|r| Outgoing.new(resp_to, r.rstrip, opts)}
   end
 
   def reg_action action, params={}, &block

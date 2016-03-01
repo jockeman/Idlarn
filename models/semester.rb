@@ -39,7 +39,7 @@ class Semester < ActiveRecord::Base
     s = 0
     str = '%s har semester ' % self.user.to_s
     starts_at = self.starts_at
-    starts_at-= 1.day while Hday.is_holiday(starts_at.to_date - 1)
+    starts_at-= 1.day while Hday.is_holiday(starts_at.localtime.to_date - 1)
     work_time = Work.find_by_user_id_and_workday( self.user_id, starts_at.yesterday.wday)|| Work.find_by_user_id_and_workday(self.user_id, nil) || Work.default
     starts_at-=(24-work_time.end_hour).hour-work_time.end_min.minutes if starts_at.localtime.hour == 0
     ends_at = self.ends_at

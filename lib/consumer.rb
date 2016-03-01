@@ -121,7 +121,8 @@ class Consumer
         message.message = message.message.gsub('med '+medk, '')
       end
       moar = false
-      if message.action == 'moar'
+      if message.action && message.action.match(/^mo+a+r+$/)
+        message.action = 'moar'
         moar = true
         ah = ActionHistory.where("action <> 'moar'").last 
         puts ah.inspect
@@ -160,13 +161,18 @@ class Consumer
     if responses
       message.user.velocity << Time.now
       message.user.velocity.delete_if{|v| (Time.now - v) > 30}
-      if message.user.velocity.length > 5
+      if message.user.velocity.length > 25
         message.user.ignore = Time.now + 300
         return nil
       end
       responses = [responses] unless responses.kind_of? Array
+      sleepDurr = 0
+      if responses.length > 10
+        sleepDurr = 0.5
+      end
       responses.each do |response|
         @irc.send_message response, all_caps, medo, medk
+        sleep sleepDurr
       end
     else
       message.user.previous[message.channel] = message.message

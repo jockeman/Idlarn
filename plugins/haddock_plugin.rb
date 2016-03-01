@@ -1,7 +1,7 @@
 # coding: utf-8
 class HaddockPlugin < BasePlugin
   def initialize()
-    @actions = ['haddock', 'insult', 'addinsult', 'robin', 'hylla', 'addhyllning']
+    @actions = ['haddock', 'insult', 'addinsult', 'robin', 'hylla', 'addhyllning', 'robidock', 'batman']
     @regexps = []
   end
 
@@ -20,11 +20,22 @@ class HaddockPlugin < BasePlugin
       "Holy %s, %s!" % [h.comment, 'Batman'] if h
     end
 
+    def robidock(msg)
+      h = Haddock.find :first, :order => 'RANDOM()'
+      r = Robin.find :first, :order => 'RANDOM()'
+      "Holy %s, %s!" % [r.comment, h.insult.downcase] if r && h
+    end
+
+    def batman(msg)
+      "I'm batman!"
+    end
+
     def insult(msg)
       return nil unless msg.message 
       return nil if msg.message.empty?
       insultee = msg.message
-      ins = Insult.find :first, :order => 'RANDOM()'
+      ins = Insult.order('RANDOM()').first()
+      puts ins.inspect
       if ins.insult.match(/%S/)
         ins.insult.gsub!(/%S/,'%s')
         insultee.upcase!

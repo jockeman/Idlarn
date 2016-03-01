@@ -40,6 +40,8 @@ class DateTimeDiff
     str = ""
     if s.length > 1
       str = " och " + s[-1]
+    else
+      return s[0].to_s
     end
     str = s[0...-1].join(", ") + str
   end

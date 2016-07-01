@@ -149,8 +149,8 @@ class WwwebPlugin < BasePlugin
         search = list.select do |r|
           (!r[:game].nil? &&
             r[:game].downcase.match(msg.message.downcase) ||
-          !r[cat].nil? &&
-            r[cat].downcase.match(msg.message.downcase))
+          !r[:cat].nil? &&
+            r[:cat].downcase.match(msg.message.downcase))
         end
         now = search.select { |r| r[:time] < Time.now }.last
         nex = search.select { |r| r[:time] > Time.now }.first

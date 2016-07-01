@@ -68,4 +68,29 @@ module Hday
       :annandagen => Date.new(year,12,26),
     }
   end
+
+  def self.free_dates(year)
+    dates = free_days_for_year(year)
+    dates.invert
+  end
+
+  def self.to_string(daysym)
+    holidays = {
+      :nyarsdagen => 'Nyårsdagen',
+      :trettondagen => 'Trettondagen',
+      :langfredag => 'Långfredag',
+      :paskdagen => 'Påskdagen',
+      :annandagpask => 'Annandag påsk',
+      :forstamaj => 'Första maj',
+      :kristiflygare => 'Kristi flygare',
+      :nationaldagen => 'Sveriges nationaldag',
+      :midsommar => 'Midsommardagen',
+      :allhelgona => 'Alla helgons dag',
+      :juldagen => 'Juldagen',
+      :annandagen => 'Annandag jul',
+      :julafton => 'Julafton',
+      :nyarsafton => 'Nyårsafton',
+      :midsommarafton => 'Midsommarafton'
+    }[daysym]
+  end
 end

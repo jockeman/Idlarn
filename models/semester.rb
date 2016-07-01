@@ -7,7 +7,7 @@ class Semester < ActiveRecord::Base
     till = Time.parse(till) if till
     till = from if till.nil?
     till = till.tomorrow if till.hour == 0
-    sem = self.find_by_user_id user.id, :conditions => "(starts_at BETWEEN '#{from}' AND '#{till}') OR (ends_at BETWEEN '#{from}' AND '#{till}') OR (starts_at < '#{from}' AND ends_at > '#{till}') OR (starts_at > '#{from}' AND ends_at < '#{till}')"
+    sem = self.where(user_id: user.id).where("(starts_at BETWEEN '#{from}' AND '#{till}') OR (ends_at BETWEEN '#{from}' AND '#{till}') OR (starts_at < '#{from}' AND ends_at > '#{till}') OR (starts_at > '#{from}' AND ends_at < '#{till}')").first
     if sem
       sem.starts_at = from
       sem.ends_at = till
@@ -22,7 +22,7 @@ class Semester < ActiveRecord::Base
   end
 
   def self.get_current
-    self.find :all, :conditions => "'#{Time.now}' BETWEEN starts_at AND ends_at"
+    self.where "'#{Time.now}' BETWEEN starts_at AND ends_at"
   end
 
   def self.get_next_semester user

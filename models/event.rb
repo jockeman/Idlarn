@@ -17,7 +17,7 @@ class Event < ActiveRecord::Base
      start, slut =  tid.split('till')
      tid = start 
     end
-    Event.find_all_by_key(key).each{|e| e.in_use = false; e.save}
+    Event.where(key: key).each{|e| e.in_use = false; e.save}
     Event.create({'key' => key, 'user_id' => (user.id rescue nil), 'starts_at' => tid, 'ends_at' => slut, 'event' => event})
     'Ok'
   end
@@ -28,7 +28,7 @@ class Event < ActiveRecord::Base
   end
 
   def self.naer key
-    event = Event.find_by_key_and_in_use key, true
+    event = Event.find_by(key: key, in_use: true)
     key.gsub!(/_/,' ')
     return nil unless event
     event.to_string rescue nil
@@ -67,7 +67,7 @@ class Event < ActiveRecord::Base
   end
 
   def self.forget key
-    e = Event.find_by_key_and_in_use(key, true)
+    e = Event.find_by(key: key, in_use: true)
     return nil if e.nil?
     e.in_use = false
     e.save
@@ -75,14 +75,14 @@ class Event < ActiveRecord::Base
   end
 
   def self.undo key
-    e = Event.find_by_key_and_in_use(key, true)
+    e = Event.find_by(key: key, in_use: true)
     if e.nil?
-      e = Event.find_by_key key
+      e = Event.find_by key: key
       e.in_use = true
       e.save
       return 'Ok'
     end
-    oe = Event.find :first, :conditions => "key = '#{key}' AND created_at < '#{e.created_at}'", :order => 'created_at desc'
+    oe = Event.where("key = '#{key}' AND created_at < '#{e.created_at}'").order('created_at desc').first
     return if oe.nil?
     e.in_use = false
     oe.in_use = true
@@ -92,9 +92,9 @@ class Event < ActiveRecord::Base
   end
 
   def self.redo key
-    e = Event.find_by_key_and_in_use(key, true)
+    e = Event.find_by(key: key, in_use: true)
     return if e.nil?
-    ne = Event.find :first, :conditions => "in_use = false AND key = '#{key}' AND created_at > '#{e.created_at}'", :order => 'created_at asc'
+    ne = Event.where("in_use = false AND key = '#{key}' AND created_at > '#{e.created_at}'").order('created_at asc').first
     return if ne.nil?
     e.in_use = false
     ne.in_use = true

@@ -125,11 +125,12 @@ class WwwebPlugin < BasePlugin
         uri = 'https://gamesdonequick.com/schedule'
         doc = Nokogiri::HTML(open(uri).read)
       end
-      #table = doc.xpath "//table[@id='runTable']/tbody"
-      table = doc.xpath "//tbody[@id='runTable']"
+      table = doc.xpath "//table[@id='runTable']/tbody"
+      #table = doc.xpath "//tbody[@id='runTable']"
       list = table[0].children.map{|r| r.children.map{|q| q.child.to_s}}
       #list.each{|r| r[1] = Time.parse(r[1].sub(/(\d+)\/(\d+)/, '\2/\1')+"-0400") unless r.empty?}
-      list.each{|r| r[1] = Time.parse(r[1]) unless r.empty?}
+      list.select!{|r| !r.empty? && !r[1].blank?}
+      list.each{|r| r[1] = Time.parse(r[1]) unless r.empty? || r[1].blank?}
       #list.each{|r| r[0] = Time.parse(r[0]+"-0400") unless r.empty?}
       hits = []
       if !msg.message.empty?

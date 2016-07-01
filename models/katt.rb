@@ -1,14 +1,14 @@
 class Katt < ActiveRecord::Base
 
   def self.spara(kattskemt)
-    self.find_or_create_by_skemt kattskemt.downcase
+    self.find_or_create_by skemt: kattskemt.downcase
   end
 
   def self.dra(del=nil)
     if del
-      self.find :first, :conditions => "skemt like '%#{del}%'", :order => 'RANDOM()'
+      self.where("skemt like '%#{del}%'").order('RANDOM()').first
     else
-      self.find :first, :order => 'RANDOM()'
+      self.order('RANDOM()').first
     end.skemt
   end
 

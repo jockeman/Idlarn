@@ -17,7 +17,7 @@ class EventPlugin < BasePlugin
 
     def events(msg)
       if msg.message && msg.message.length > 0
-        events = Event.find_all_by_in_use true, :order => :key, :conditions => "key ilike '%#{msg.message}%'", :limit => 6
+        events = Event.where(in_use: true).order(:key).where("key ilike '%#{msg.message}%'").limit(6)
       else
         events = Event.count :conditions => "in_use = TRUE", :group => :key#find_all_by_in_use true, :order => :key
         return "Det finns #{events} nycklar, använd .events <delnyckel> för att söka."
@@ -182,7 +182,7 @@ class EventPlugin < BasePlugin
     end
 
     def history(msg)
-      es = Event.find_all_by_key msg.message.split.first, :order => :created_at
+      es = Event.where(key: msg.message.split.first).order(:created_at)
       es.map{|e| ((e.in_use ? "=> " : "   ") +e.to_string+(e.user ? " ["+e.user.to_s+"]" : "") + (e.created_at ? " (" + e.created_at.strftime("%Y-%m-%d") + ")" : ""))}.uniq
     end
 

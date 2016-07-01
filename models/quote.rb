@@ -4,7 +4,7 @@ class Quote < ActiveRecord::Base
   belongs_to :channel
 
   def self.log_quote adder, channel_name, quote
-    channel = Channel.find_or_create_by_name channel_name.upcase.gsub(/#/,'')
+    channel = Channel.find_or_create_by name: channel_name.upcase.gsub(/#/,'')
     puts "[%s@%s] %s" % ['QUOTE', channel.name, quote]
     self.create 'channel_id' => channel.id, 'quote' => quote, 'adder' => adder.id, 'timestamp' => Time.now
     "Ok, added #{quote}"
@@ -31,16 +31,16 @@ class Quote < ActiveRecord::Base
       str = str.join(' ')
       q = case str
       when ''
-        self.find(:first, :order => 'RANDOM()')
+        self.order('RANDOM()').first
       when /-[0-9]+/
         o = -(str.to_i) - 1
-        self.find :first, order: 'id desc', offset: o
+        self.order('id desc').offset(o).first
       when /[0-9]+/
         self.find str.to_i
       else
         str = str.downcase
         str.gsub!(/[^a-z0-9åäö]/,'')
-        self.find :first, :conditions => "quote ILIKE '%#{str}%'", :order => 'RANDOM()'
+        self.where("quote ILIKE '%#{str}%'").order('RANDOM()').first
       end
     end
     return nil if q.nil?

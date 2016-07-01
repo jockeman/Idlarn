@@ -142,13 +142,16 @@ class SlaskPlugin < BasePlugin
       end
       dd2 = DateTimeDiff.new(birthdate.to_datetime, nu)
       puts dd2.diff.inspect
-      bonusstr = "."
+      bonusstr = ""
       if (dd2.years > dd.years) or 
       (dd2.years == dd.years and dd2.months > dd.months) or
       (dd2.years == dd.years and dd2.months == dd.months and dd2.days > dd.days)
-        bonusstr = ". "+name.capitalize+" är mer än halvvägs nu." 
-      end
-      name.capitalize + " går i pension om " + dd.to_string + bonusstr 
+        bonusstr = name.capitalize+" är mer än halvvägs nu." 
+      end 
+      workdays = (nu..pday).select{|d| !Hday.is_holiday(d)}.count
+      mondays = (nu..pday).select{|d| d.cwday == 1}.count
+      name.capitalize + " går i pension om " + dd.to_string + '. ' + 
+        workdays.to_s + ' arbetsdagar varav ' + mondays.to_s + ' måndagar. ' + bonusstr 
     end
 
     def ångest(msg)

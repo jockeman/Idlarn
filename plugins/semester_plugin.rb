@@ -1,7 +1,7 @@
 # coding: utf-8
 class SemesterPlugin < BasePlugin
   def initialize()
-    @actions = ['semester', 'semestrar', 'helg', 'ledig']
+    @actions = ['semester', 'semestrar', 'helg', 'ledig', 'arbetsdag']
   end
 
 #  class << self
@@ -80,6 +80,24 @@ class SemesterPlugin < BasePlugin
       (helg - Time.now).to_i.sec_to_string+ ' till nästa ledighet'
     end
     alias :ledig :helg
+
+    def arbetsdag(msg)
+      date = Date.today
+      if !msg.message.empty?
+        date = Date.parse(msg.message)
+      end
+      weekdays = %w(mörv måndag tisdag onsdag torsdag fredag lördag söndag)
+      workday = !Hday.is_holiday(date)
+      if !workday
+        reasons = Hday.free_dates(date.year)
+        reason = weekdays[date.cwday]
+        if(reasons.has_key?(date))
+          reason = Hday.to_string(reasons[date])
+        end
+        return 'Nej, ' + reason
+      end
+      'Ja, ' + weekdays[date.cwday]
+    end
 #  end
 
 end

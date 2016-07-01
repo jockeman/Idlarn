@@ -8,21 +8,21 @@ class HaddockPlugin < BasePlugin
 #  class << self
     def haddock(msg)
       if msg.message.empty?
-        h = Haddock.find :first, :order => 'RANDOM()'
+        h = Haddock.order('RANDOM()').first
       else
-        h = Haddock.find :first, :conditions => "insult ilike '%#{msg.message}%'", :order => 'RANDOM()' 
+        h = Haddock.where("insult ilike '%#{msg.message}%'").order('RANDOM()').first
       end
       "%s!" % h.insult.strip if h
     end
 
     def robin(msg)
-      h = Robin.find :first, :order => 'RANDOM()'
+      h = Robin.order('RANDOM()').first
       "Holy %s, %s!" % [h.comment, 'Batman'] if h
     end
 
     def robidock(msg)
-      h = Haddock.find :first, :order => 'RANDOM()'
-      r = Robin.find :first, :order => 'RANDOM()'
+      h = Haddock.order('RANDOM()').first
+      r = Robin.order('RANDOM()').first
       "Holy %s, %s!" % [r.comment, h.insult.downcase] if r && h
     end
 

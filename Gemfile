@@ -9,3 +9,5 @@ gem 'nokogiri'
 gem 'bcrypt'
 
 gem 'fiber_pool'
+
+gem 'rack'

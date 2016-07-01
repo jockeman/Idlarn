@@ -98,11 +98,11 @@ URLEX = /https?:\/\/[^ ]*/u
 
     m = Mix.find :first, :conditions => "created_at BETWEEN '%s' AND '%s' AND user_id = %d" % [dagstart, datum, u.id], :order => "created_at ASC" if u
     if m.nil? && spec == false
-      m = Mix.find :first, :conditions => "created_at BETWEEN '%s' AND '%s'" % [dagstart,datum], :order => "created_at ASC"
+      m = Mix.where("created_at BETWEEN '%s' AND '%s'" % [dagstart,datum]).order("created_at ASC").first
     end
     if m.nil?
       spec = false
-      m = Mix.find :first, :conditions => "created_at <= '%s'" % [datum], :order => "created_at DESC"
+      m = Mix.where("created_at <= '%s'" % [datum]).order("created_at DESC").first
     end
       if msg.message.length > 0
         if msg.message.match(/\+\+/)
@@ -118,7 +118,7 @@ URLEX = /https?:\/\/[^ ]*/u
           return "Ok"
         end
       end
-    rank = MixRank.sum :rank, :conditions => {:mix_id => m.id}
+    rank = MixRank.where(mix_id: m.id).sum(:rank)
     if spec
       "%s %s %d poäng" % [m.created_at.strftime("%Y-%m-%d"), m.url, rank]
     else
@@ -162,13 +162,13 @@ URLEX = /https?:\/\/[^ ]*/u
   end
 
   def mixtoppen(msg)
-    toppen = MixRank.count :group => :mix_id, :order => "count_all DESC", :limit => 5
+    toppen = MixRank.group(:mix_id).order("count_all DESC").limit(5).count
     p = 0
     toppen.map{|k,v| m = Mix.find(k); p+=1; "[%d] %s@%s %s: (%d poäng)" % [p, m.user.to_s, m.created_at.strftime("%Y-%m-%d"), m.url, v]}.join(', ')
   end
 
   def mixmasters(msg)
-    masters = Mix.count :group => :user_id, :order => "count_all DESC", :limit => 5
+    masters = Mix.group(:user_id).order("count_all DESC").limit(5).count
     mms = masters.map{|k,v| "%s: %d" % [User.find(k).to_s, v]}.join(', ')
   end
 end

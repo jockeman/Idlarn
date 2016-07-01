@@ -20,8 +20,9 @@ class KattPlugin < BasePlugin
     end
 
     def spara(msg)
+      puts "Kattskemt"
       Katt.spara(msg.message)
-      "Hoho!"
+      "Heh!"
     end
 
 

@@ -4,7 +4,7 @@ require 'shellwords'
 class UrlsPlugin < BasePlugin
 URLEX = /https?:\/\/[^ ]*/u
   def initialize()
-    @actions = ['old', 'oldz', 'oldest', 'oldscore', 'oldscorep', 'randomknug', 'dagensknug']
+    @actions = ['old', 'oldz', 'oldest', 'oldscore', 'oldscorep', 'newscorep', 'randomknug', 'dagensknug']
     @regexps = [URLEX]
   end
 
@@ -125,9 +125,20 @@ URLEX = /https?:\/\/[^ ]*/u
       usrs.join(', ') unless usrs.empty?
     end
 
-    def oldscorep(msg)
+    def newscorep(msg)
       stats = Url.joins(:user).group(:user_id, :oldz).count
       entries = stats.select{|k,v| v>50}.map{|k,v| [k.last.to_f/(v+k.last) ,k.first, k.last, v+k.last]}.sort[0..9]
+      usrs = []
+      entries.each_with_index do |e, i|
+        u = User.find e[1]
+        usrs << ("[%d] %s: %d/%d (%.1f%%)" % [i+1, u.to_s, e[2], e[3], e[0]*100])
+      end
+      usrs.join(', ') 
+    end
+
+    def oldscorep(msg)
+      stats = Url.joins(:user).group(:user_id, :oldz).count
+      entries = stats.select{|k,v| v>50}.map{|k,v| [k.last.to_f/(v+k.last) ,k.first, k.last, v+k.last]}.sort.reverse[0..9]
       usrs = []
       entries.each_with_index do |e, i|
         u = User.find e[1]

@@ -117,58 +117,73 @@ class WwwebPlugin < BasePlugin
 
     def sda msg
       puts 'sda'
-      #uri = 'http://marathon.speeddemosarchive.com/schedule'
       begin
-        uri = 'http://gamesdonequick.com/schedule'
-        doc = Nokogiri::HTML(open(uri).read)
-      rescue
         uri = 'https://gamesdonequick.com/schedule'
         doc = Nokogiri::HTML(open(uri).read)
+      rescue
+        uri = 'http://gamesdonequick.com/schedule'
+        doc = Nokogiri::HTML(open(uri).read)
       end
-      table = doc.xpath "//table[@id='runTable']/tbody"
-      #table = doc.xpath "//tbody[@id='runTable']"
-      list = table[0].children.map{|r| r.children.map{|q| q.child.to_s}}
-      #list.each{|r| r[1] = Time.parse(r[1].sub(/(\d+)\/(\d+)/, '\2/\1')+"-0400") unless r.empty?}
-      list.select!{|r| !r.empty? && !r[1].blank?}
-      list.each{|r| r[1] = Time.parse(r[1]) unless r.empty? || r[1].blank?}
-      #list.each{|r| r[0] = Time.parse(r[0]+"-0400") unless r.empty?}
+      rows = doc.xpath(
+        "//table[@id='runTable']/tbody/tr[contains(@class, 'second-row')]")
+      list = rows.map do |r|
+        node = r.previous
+                .previous
+                .xpath("td[contains(@class, 'start-time')]")
+                .first
+        entry = { time: Time.parse(node.text) }
+        node = node.next.next
+        entry[:game] = node.text.strip if node.text
+        node = node.next.next
+        entry[:runner] = node.text.strip if node.text
+        node = node.next.next
+        entry[:setup] = node.text.strip if node.text
+        node2 = r.xpath('td')
+        entry[:runtime] = node2[0].text.strip if node2[0].text
+        entry[:cat] = node2[1].text.strip if node2[1].text
+        entry
+      end
+
       hits = []
       if !msg.message.empty?
-        search = list.select{|r| !r.empty? && (!r[3].nil? && r[3].downcase.match(msg.message.downcase) || !r[13].nil? && r[13].downcase.match(msg.message.downcase))}
-        now = search.select{|r| !r.empty? && r[1] < Time.now}.last
-        nex = search.select{|r| !r.empty? && r[1] > Time.now}.first
+        search = list.select do |r|
+          (!r[:game].nil? &&
+            r[:game].downcase.match(msg.message.downcase) ||
+          !r[cat].nil? &&
+            r[cat].downcase.match(msg.message.downcase))
+        end
+        now = search.select { |r| r[:time] < Time.now }.last
+        nex = search.select { |r| r[:time] > Time.now }.first
         hits = search[0..4]
       else
-        now = list.select{|r| !r.empty? && r[1] < Time.now}.last
-        nex = list.select{|r| !r.empty? && r[1] > Time.now}.first
+        now = list.select { |r| r[:time] < Time.now }.last
+        nex = list.select { |r| r[:time] > Time.now }.first
         hits = [now, nex]
       end
-      basestr = "[%s] %s - %s, Tid: %s %s"
-      nowstr = basestr % [stringifytime(now[1]), now[3], now[5], now[7], now[13]] if now
-      #nowstr = "Nu: #{now[1]} - #{now[2]}, Tid: #{now[3]}"
-      nextstr = basestr % [stringifytime(nex[1]), nex[3], nex[5], nex[7], nex[13]] if nex
-      strs = hits.compact.map{|h| basestr % [stringifytime(h[1]), h[3], h[5], h[7], h[13]]}
-      #nextstr = "[#{nex[0].strftime "%H:%M"}] #{nex[1]} - #{nex[2]}, Tid: #{nex[3]}"
-#      "Now playing: #{now[1]}. Upcoming: [#{nex[0].strftime "%H:%M"}] #{nex[1]}"
-      return strs
-      return [nowstr.strip, nextstr.strip] if nowstr && nextstr
-      return nowstr.strip if nowstr
-      return nextstr.strip if nextstr
+      basestr = '[%s] %s - %s, Tid: %s %s'
+      hits.compact.map do |h|
+        basestr % [
+          stringifytime(h[:time]),
+          h[:game],
+          h[:runner],
+          h[:runtime],
+          h[:cat]
+        ]
+      end
     end
 
-    alias :gdq :sda
-    alias :agdq :sda
-    alias :sgdq :sda
-
+    alias gdq sda
+    alias agdq sda
+    alias sgdq sda
 
     def esa msg
       puts 'esa'
       uri = 'https://horaro.org/preesa/schedule'
       doc = Nokogiri::HTML(open(uri).read)
-      rows = doc.xpath "//tbody/tr"
+      rows = doc.xpath '//tbody/tr'
       list = rows.map do |row|
-        timestring = row.children[1].child["datetime"]
-        next if !timestring
+        timestring = row.children[1].child['datetime']
+        next unless timestring
         time = Time.parse(timestring)
         game = row.children[3].child.to_s
         runner = row.children[7].child.to_s

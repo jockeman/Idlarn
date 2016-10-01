@@ -11,6 +11,7 @@ class SlaskPlugin < BasePlugin
   def initialize()
     @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'skrivaao', 'skrivåäö', 'åäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension', 'beatlön', 'pi', 'dopparedan','frdg', 'ångest', 'blodgrupp', 'ts']
     @actions += ['veme', 'vemär']
+    @actions += ['å', 'ä', 'ö']
     @regexps = [SUBEX, GSUBEX, OMSTART, MEDO, MEDK, REV]
   end
 
@@ -353,6 +354,18 @@ class SlaskPlugin < BasePlugin
       puts daydiff
       return daydiff.to_i.to_s + "x dan före dopparedan" if daydiff > 36
       ("Idag är det " + (0...(daydiff)).map{|o| 'dan före'}.join(" ") + " dopparedan.").capitalize
+    end
+
+    def å(msg)
+      ',hang å'
+    end
+
+    def ä(msg)
+      ',hang ä'
+    end
+
+    def ö(msg)
+      ',hang ö'
     end
 #  end
 end

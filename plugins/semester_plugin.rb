@@ -19,7 +19,7 @@ class SemesterPlugin < BasePlugin
     def semestrar(msg)
       if !msg.message.empty?
         user = User.fetch(msg.message, false)
-        sems = Semester.find_all_by_user_id user.id, :conditions => "ends_at > '#{Time.now}'"
+        sems = Semester.where(user_id: user.id).where("ends_at > '#{Time.now}'")
         return sems.map{|s| "#{s.starts_at.to_s} - #{s.ends_at.to_s}"}.join(', ')
       end
       semestrar = Semester.get_current

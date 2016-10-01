@@ -178,17 +178,20 @@ class WwwebPlugin < BasePlugin
 
     def esa msg
       puts 'esa'
-      uri = 'https://horaro.org/preesa/schedule'
+      #uri = 'https://horaro.org/preesa/schedule'
+      uri = 'http://www.esamarathon.com/schedule'
       doc = Nokogiri::HTML(open(uri).read)
-      rows = doc.xpath '//tbody/tr'
+      rows = doc.xpath '//tr'
       list = rows.map do |row|
-        timestring = row.children[1].child['datetime']
+        next unless row.children[0] && row.children[0].child
+        timestring = row.children[0].child['datetime']
         next unless timestring
         time = Time.parse(timestring)
-        game = row.children[3].child.to_s
-        runner = row.children[7].child.to_s
-        estimate = row.children[5].child.child.to_s
-        extra = row.children[13].child.to_s
+        game = row.children[1].child.text
+        runner = row.children[3].child && row.children[3].child.text
+#        estimate = row.children[5].child.child.to_s
+        estimate = row.attributes['title'].text.split(";").first.split(": ").last
+        extra = row.children[2].child.text
         [time, game, runner, estimate, extra]
       end.compact
 

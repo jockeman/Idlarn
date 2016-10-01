@@ -121,7 +121,7 @@ class EventPlugin < BasePlugin
       return "Nix"
     end
     def torsdag(msg)
-      return "Japp" if Time.now.thursday?
+      return "Japp - https://i.imgur.com/AORUZxY.jpg" if Time.now.thursday?
       return "Nix"
     end
     def lördag(msg)

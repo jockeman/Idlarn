@@ -33,12 +33,12 @@ class Poster
   end
 
   def read_pic()
-    return if File.size("/home/idlarn/picbuff.txt") == 0
-    f = File.open("/home/idlarn/picbuff.txt","r")
+    return if File.size(`#{FileUtils.pwd}/tmp/picbuff.txt`) == 0
+    f = File.open(`#{FileUtils.pwd}/tmp/picbuff.txt`, "r")
     lines = []
     f.each_line{|l| lines << convert_color(l)}
     f.close()
-    f = File.open("/home/idlarn/picbuff.txt","w")
+    f = File.open(`#{FileUtils.pwd}/tmp/picbuff.txt`,"w")
     f.truncate(0)
     f.close()
     lines.each{|l| post(l);sleep(1) }

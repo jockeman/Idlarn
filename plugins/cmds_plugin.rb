@@ -26,7 +26,7 @@ class CmdsPlugin < BasePlugin
         eyes = ''
       end
       resp = []
-      `/usr/games/bin/sex | /usr/bin/cowsay #{eyes} -f /home/idlarn/icf/static/reven.cow`.each_line{|l| resp << l }
+      `/usr/games/bin/sex | /usr/bin/cowsay #{eyes} -f #{FileUtils.pwd}/static/reven.cow`.each_line{|l| resp << l }
       resp
   end
 
@@ -40,7 +40,7 @@ class CmdsPlugin < BasePlugin
     def rev(msg)
       return nil if msg.message.empty?
       resp = []
-      `/usr/bin/cowsay -f /home/idlarn/icf/static/reven.cow #{msg.message.shellescape}`.each_line{|l| resp << l }
+      `/usr/bin/cowsay -f #{FileUtils.pwd}/static/reven.cow #{msg.message.shellescape}`.each_line{|l| resp << l }
       resp
     end
 

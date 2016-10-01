@@ -5,7 +5,7 @@ class Outgoing
     @message = message
     @priv = opts[:priv]
     @mode = opts[:mode]
-    `echo "[#{Time.now.strftime "%F %T"} | ME] #{@message}" >> /home/idlarn/log/#{@channel}.log` if @message
+    `echo "[#{Time.now.strftime "%F %T"} | ME] #{@message}" >> ~/log/#{@channel}.log` if @message
     end
 
   def to_s(all_caps=false, medo=nil, medk=nil)
@@ -31,7 +31,7 @@ class NormalMessage < Outgoing
   def initialize(channel, message)
     @channel = channel
     @message = message
-    `echo "[#{Time.now.strftime "%F %T"} | ME] #{@message}" >> /home/idlarn/log/#{@channel}.log` if @message
+    `echo "[#{Time.now.strftime "%F %T"} | ME] #{@message}" >> ~/log/#{@channel}.log` if @message
     end
 
   def to_s(all_caps=false)
@@ -44,7 +44,7 @@ class PrivateMessage < Outgoing
   def initialize(channel, message)
     @channel = channel
     @message = message
-    `echo "[#{Time.now.strftime "%F %T"} | ME] #{@message}" >> /home/idlarn/log/#{@channel}.log` if @message
+    `echo "[#{Time.now.strftime "%F %T"} | ME] #{@message}" >> ~/log/#{@channel}.log` if @message
     end
 
   def to_s(all_caps=false)

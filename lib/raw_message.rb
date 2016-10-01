@@ -12,6 +12,6 @@ class RawMessage
       @payload.encode!("UTF-8", "ISO-8859-15")
     end
     puts "[%s#%s] %s" % [@nick, @channel, @payload] if @payload
-    `echo "[#{Time.now.strftime "%F %T"} | #{@nick}] #{@payload}" >> /home/idlarn/log/#{@channel == 'HipsterN^' ? @nick : @channel}.log` if @payload
+    `echo "[#{Time.now.strftime "%F %T"} | #{@nick}] #{@payload}" >> ~/log/#{@channel == 'HipsterN^' ? @nick : @channel}.log` if @payload
   end
 end

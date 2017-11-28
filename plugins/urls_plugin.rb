@@ -44,8 +44,8 @@ URLEX = /https?:\/\/[^ ]*/u
       return if msg.channel == "dv_foto"
       urs = msg.message.scan URLEX
       begin
-      `cd /home/idlarn/slaskbilder/; /usr/bin/wget -b #{urs.first.shellescape}`
-      `cd /home/idlarn; /bin/echo #{urs.first.shellescape} > picbuff.tmp && /usr/bin/curl #{urs.first.shellescape} | convert - jpg:- | /usr/bin/jp2a --colors --width=55 - >> picbuff.tmp && /bin/cat picbuff.tmp >> picbuff.txt`
+      `cd ~/slaskbilder/; /usr/bin/wget -b #{urs.first.shellescape}`
+      `cd ~/Idlarn/tmp; /bin/echo #{urs.first.shellescape} > picbuff.tmp && /usr/bin/curl #{urs.first.shellescape} | convert - jpg:- | /usr/bin/jp2a --colors --width=55 - >> picbuff.tmp && /bin/cat picbuff.tmp >> picbuff.txt`
       rescue StandardError => e
         puts e.message
       end

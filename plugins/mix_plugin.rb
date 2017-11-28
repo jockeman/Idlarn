@@ -96,7 +96,7 @@ URLEX = /https?:\/\/[^ ]*/u
     datum = (datum.to_date + 1).to_time
     dagstart = (datum.to_date - 1).to_time
 
-    m = Mix.find :first, :conditions => "created_at BETWEEN '%s' AND '%s' AND user_id = %d" % [dagstart, datum, u.id], :order => "created_at ASC" if u
+    m = Mix.where("created_at BETWEEN '%s' AND '%s' AND user_id = %d" % [dagstart, datum, u.id]).order("created_at ASC").first if u
     if m.nil? && spec == false
       m = Mix.where("created_at BETWEEN '%s' AND '%s'" % [dagstart,datum]).order("created_at ASC").first
     end
@@ -146,13 +146,13 @@ URLEX = /https?:\/\/[^ ]*/u
     datum = (datum.to_date + 1).to_time
     dagstart = (datum.to_date - 1).to_time
 
-    m = Mix.find :first, :conditions => "created_at BETWEEN '%s' AND '%s' AND user_id = %d" % [dagstart, datum, u.id], :order => "created_at ASC"
+    m = Mix.where("created_at BETWEEN '%s' AND '%s' AND user_id = %d" % [dagstart, datum, u.id]).order("created_at ASC").first()
     if m.nil? && spec == false
-      m = Mix.find :first, :conditions => "created_at BETWEEN '%s' AND '%s'" % [dagstart,datum], :order => "created_at ASC"
+      m = Mix.where("created_at BETWEEN '%s' AND '%s'" % [dagstart,datum]).order("created_at ASC").first
     end
     if m.nil?
       spec = false
-      m = Mix.find :first, :conditions => "created_at <= '%s' AND user_id = %d" % [datum, u.id], :order => "created_at DESC"
+      m = Mix.where("created_at <= '%s' AND user_id = %d" % [datum, u.id]).order("created_at DESC").first()
     end
     if spec
       "%s %s" % [m.created_at.strftime("%Y-%m-%d"), m.url]

@@ -48,8 +48,8 @@ class SemesterPlugin < BasePlugin
           w.save
           work_time = w
         end
-        work_time.end_hour = override_time.hour
-        work_time.end_min = override_time.min
+        work_time.end_hour = override_time.localtime.hour
+        work_time.end_min = override_time.localtime.min
         work_time.save
       end
       if Time.now.saturday?

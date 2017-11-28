@@ -1,6 +1,6 @@
 class ICF
   attr_accessor :irc
-  attr_reader :consumer, :listener, :poster
+  attr_reader :consumer, :listener, :poster, :q
   def initialize(host='irc.homelien.no', port=6667)
     @irc = IRC.new(host, port)
     @q = []

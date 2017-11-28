@@ -93,9 +93,9 @@ def new_action
   end
 end
 
-class Message
-  attr_accessor :message
-  def initialize msg
-    self.message = msg
-  end
-end
+#class Message
+#  attr_accessor :message
+#  def initialize msg
+#    self.message = msg
+#  end
+#end

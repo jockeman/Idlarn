@@ -5,7 +5,7 @@ require 'json'
 require 'zlib'
 class WwwebPlugin < BasePlugin
   def initialize()
-    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'sda', 'gdq', 'agdq', 'sgdq', 'esa', 'kris', 'titelffs', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag']
+    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'hrdq', 'sda', 'gdq', 'agdq', 'sgdq', 'esa', 'kris', 'titelffs', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag', 't', '', 'väder', 'vader', 'v']
     @actions += ['snuten', 'farbrorblå', 'polisen','aina']
     @actions += ['callme', 'classname', 'robiname']
     @actions += ['callmedock', 'hadmedock', 'classmedock', 'robimedock']
@@ -16,11 +16,17 @@ class WwwebPlugin < BasePlugin
   end
 
   #class << self
-
+    def action(msg)
+      if msg.action != ""
+        super
+      else
+        build_response(temperatur(msg), msg)
+      end
+    end
 
     def help(msg)
       case msg.message
-      when 'sda', 'gdq', 'agdq'
+      when 'sda', 'gdq', 'agdq', 'sgdq'
         resp = ["http://gamesdonequick.com/schedule"]
         build_response(resp, msg)
       else
@@ -44,7 +50,7 @@ class WwwebPlugin < BasePlugin
     end
 
     def defcon msg
-      doc = open "http://defconwarningsystem.com"
+      doc = open "https://defconwarningsystem.com"
       nok = Nokogiri::HTML doc.read
       nok.xpath("//p[@align='center']").map{|n| n.children.text.scan(/DEFCON \d/)}.flatten.compact.uniq
     end
@@ -175,6 +181,7 @@ class WwwebPlugin < BasePlugin
     alias gdq sda
     alias agdq sda
     alias sgdq sda
+    alias hrdq sda
 
     def esa msg
       puts 'esa'
@@ -183,15 +190,23 @@ class WwwebPlugin < BasePlugin
       doc = Nokogiri::HTML(open(uri).read)
       rows = doc.xpath '//tr'
       list = rows.map do |row|
-        next unless row.children[0] && row.children[0].child
-        timestring = row.children[0].child['datetime']
+        next unless row.children[7] && row.children[7].child
+        timestring = row.children[7].child['datetime']
+        offset = 0
+        extra = 'S1'
+        if !timestring
+          next unless row.children[1] && row.children[1].child
+          timestring = row.children[1].child['datetime']
+          offset = 2
+          extra = 'S2'
+        end
         next unless timestring
         time = Time.parse(timestring)
-        game = row.children[1].child.text
-        runner = row.children[3].child && row.children[3].child.text
+        game = row.children[1 + offset].child.text
+        runner = row.children[3 + offset].child && row.children[3 + offset].child.text
 #        estimate = row.children[5].child.child.to_s
-        estimate = row.attributes['title'].text.split(";").first.split(": ").last
-        extra = row.children[2].child.text
+        estimate = row.children[1].attributes['title'].text.split(";").first.split(": ").last
+        #extra = row.children[2 + offset] && row.children[2 + offset].child && row.children[2 + offset].child.text
         [time, game, runner, estimate, extra]
       end.compact
 
@@ -311,7 +326,7 @@ class WwwebPlugin < BasePlugin
       if !msg.message.empty?
         u = User.fetch msg.message, false
         if u
-          page = 'http://'+Url.find_by_channel_and_user_id(msg.channel, u.id, :order => "created_at DESC").url
+          page = 'http://'+Url.where(channel: msg.channel, user_id: u.id).order("created_at DESC").first.url
         else
           page = msg.message
         end
@@ -331,8 +346,13 @@ class WwwebPlugin < BasePlugin
       doc = Nokogiri::HTML(open('http://130.238.141.28/obs_10min.htm'))
       varr = doc.xpath('//pre').text.gsub(/  */," ").split("\r\n")
       #varr[1].split(":").last.strip
-      [varr[0], varr[3], varr[4], varr[5], varr[6]].join(", ")
+      #[varr[0], varr[3], varr[4], varr[5], varr[6], varr[9]].join(", ")
+      [varr[0], varr[3], varr[4], varr[5], varr[6], varr[7], varr[8]].join(", ")
     end
+    alias t temperatur 
+    alias v temperatur 
+    alias väder temperatur 
+    alias vader temperatur 
 
     def rubrlol(msg)
       doc = Nokogiri::HTML(open('http://www.rubrikgeneratorn.se'))
@@ -380,7 +400,7 @@ class WwwebPlugin < BasePlugin
       else
         dagen = Date.parse(msg.message) rescue Date.today
       end
-      doc = Nokogiri::HTML(open('http://temadagar.se/kalender'))
+      doc = Nokogiri::HTML(open('https://temadagar.se/kalender'))
       dagar = doc.xpath('//p')[4..-5]
       full = dagar.map do |d| 
         datum = d.xpath('b').text

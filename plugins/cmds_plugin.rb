@@ -15,7 +15,7 @@ class CmdsPlugin < BasePlugin
       else
         eyes = ''
       end
-      `/usr/games/bin/sex | /usr/bin/cowsay #{eyes} -f sodomized`.each_line{|l| resp << l }
+      `/usr/bin/sex | /usr/bin/cowsay #{eyes} -f sodomized`.each_line{|l| resp << l }
       resp
   end
 
@@ -26,7 +26,7 @@ class CmdsPlugin < BasePlugin
         eyes = ''
       end
       resp = []
-      `/usr/games/bin/sex | /usr/bin/cowsay #{eyes} -f #{FileUtils.pwd}/static/reven.cow`.each_line{|l| resp << l }
+      `/usr/bin/sex | /usr/bin/cowsay #{eyes} -f #{FileUtils.pwd}/static/reven.cow`.each_line{|l| resp << l }
       resp
   end
 
@@ -46,7 +46,7 @@ class CmdsPlugin < BasePlugin
 
   #class << self
     def sex(msg)
-      `/usr/games/bin/sex`
+      `/usr/bin/sex`
     end
 
 

@@ -46,7 +46,7 @@ module Hday
   def self.free_days_for_year(year)
     free = holidays_for_year(year)
     free[:julafton] = Date.new(year,12,24)
-    free[:nyarsafton] = Date.new(year,12,30)
+    free[:nyarsafton] = Date.new(year,12,31)
     free[:midsommarafton] = get_midsommar(year).prev_day
     free[:pingst] = get_easter(year)+7*7
     return free

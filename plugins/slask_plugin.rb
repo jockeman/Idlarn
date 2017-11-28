@@ -12,6 +12,7 @@ class SlaskPlugin < BasePlugin
     @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'skrivaao', 'skrivåäö', 'åäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension', 'beatlön', 'pi', 'dopparedan','frdg', 'ångest', 'blodgrupp', 'ts']
     @actions += ['veme', 'vemär']
     @actions += ['å', 'ä', 'ö']
+    @actions += ['amiga']
     @regexps = [SUBEX, GSUBEX, OMSTART, MEDO, MEDK, REV]
   end
 
@@ -132,7 +133,7 @@ class SlaskPlugin < BasePlugin
       end
       birthdate = u.birthdate
       return "Jag vet inte när "+name+" är född" if birthdate.nil?
-      pday = birthdate.to_datetime.next_year(65)
+      pday = birthdate.to_datetime.next_year(75)
       nu = DateTime.now
       dd = DateTimeDiff.new(nu, pday)
       puts dd.diff.inspect
@@ -149,8 +150,8 @@ class SlaskPlugin < BasePlugin
       (dd2.years == dd.years and dd2.months == dd.months and dd2.days > dd.days)
         bonusstr = name.capitalize+" är mer än halvvägs nu." 
       end 
-      workdays = (nu..pday).select{|d| !Hday.is_holiday(d)}.count
-      mondays = (nu..pday).select{|d| d.cwday == 1}.count
+      workdays = (nu..pday).select{|d| !Hday.is_holiday(d)}.count - 30 * dd.years
+      mondays = (nu..pday).select{|d| d.cwday == 1}.count - 6 * dd.years
       name.capitalize + " går i pension om " + dd.to_string + '. ' + 
         workdays.to_s + ' arbetsdagar varav ' + mondays.to_s + ' måndagar. ' + bonusstr 
     end
@@ -366,6 +367,13 @@ class SlaskPlugin < BasePlugin
 
     def ö(msg)
       ',hang ö'
+    end
+
+    def amiga(msg)
+      a1 = (Random.rand * 10).to_i.times.map{'A'}.join
+      a2 = (Random.rand * 30).to_i.times.map{'A'}.join
+      i = (Random.rand * 5).to_i.times.map{'I'}.join
+      "#{a1}AM#{i}IGA#{a2}!!!"
     end
 #  end
 end

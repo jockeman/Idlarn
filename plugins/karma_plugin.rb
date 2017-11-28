@@ -10,16 +10,22 @@ class KarmaPlugin < BasePlugin
   def action(msg)
     case msg.message
     when KARMAUP
-      if msg.user.last_karma && (Time.now - msg.user.last_karma) < 60
-        msg.user.last_karma = Time.now
-        return build_response("#{msg.user.nick}: Lugna ner dig!", msg ) 
-      end
+      puts 'karmaup'
+      #if msg.user.last_karma && (Time.now - msg.user.last_karma) < 60
+      #  msg.user.last_karma = Time.now
+      #  return build_response("#{msg.user.nick}: Lugna ner dig!", msg ) 
+      #end
       nick = msg.message.gsub(/\+\+$/,'')
+      puts "karma #{nick}++"
       user = User.fetch nick, false
-      return build_response("#{msg.user.nick}: Nice try, Bitch!", msg) if user.id == msg.user.dbid
+      puts "User found: #{user.inspect}"
+      return build_response("#{msg.user.nick}: Nice try!", msg) if user.id == msg.user.dbid
       msg.user.last_karma = Time.now
-      user.karma+=1
+      puts "#{user} had #{user.karma}"
+      user.karma += 1
+      puts "#{user} got #{user.karma}"
       user.save
+      puts "Done"
     when KARMADN
       if msg.user.last_karma && (Time.now - msg.user.last_karma) < 60
         msg.user.last_karma = Time.now
@@ -32,6 +38,7 @@ class KarmaPlugin < BasePlugin
       user.karma-=1
       user.save
     else
+      puts "No karma :("
       super
     end
 
@@ -39,7 +46,9 @@ class KarmaPlugin < BasePlugin
 
   def karma(msg)
     u = User.fetch msg.message, false
+    puts "User: #{u.inspect}"
     u = msg.user.dbuser.reload if u.nil?
+    puts "User: #{u.inspect}"
     "#{u.to_s} har %d karma" % u.karma if u
   end
 

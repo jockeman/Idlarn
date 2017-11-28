@@ -11,3 +11,7 @@ gem 'bcrypt'
 gem 'fiber_pool'
 
 gem 'rack'
+
+gem 'morse'
+
+gem 'twitter'

@@ -1,7 +1,7 @@
 # coding: utf-8
 class EventPlugin < BasePlugin
   def initialize()
-    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån', 'födelsedag', 'nästa_födelsedag', 'age', 'ålder']
+    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån', 'födelsedag', 'nästa_födelsedag', 'age', 'ålder', 'stånk']
     @actions+=['tisdag','onsdag','torsdag','lördag','söndag']
   end
 
@@ -184,6 +184,18 @@ class EventPlugin < BasePlugin
     def history(msg)
       es = Event.where(key: msg.message.split.first).order(:created_at)
       es.map{|e| ((e.in_use ? "=> " : "   ") +e.to_string+(e.user ? " ["+e.user.to_s+"]" : "") + (e.created_at ? " (" + e.created_at.strftime("%Y-%m-%d") + ")" : ""))}.uniq
+    end
+
+    def stånk(msg)
+      if msg.message.empty?
+      else
+        user = User.fetch msg.message, false
+        if user.birthdate
+          "%ss päron stånkade troligtvis på varandra %s" % [ user.to_s, user.birthdate.months_ago(9).strftime("%Y-%m-%d")]
+        else
+          "Jag vet inte när %s är född" % user.to_s
+        end
+      end
     end
 
     def birthdays(msg)

@@ -57,7 +57,9 @@ class Event < ActiveRecord::Base
       elsif self.startar != self.slutar
         return "#{key.capitalize} var förr"
       else
-        return str
+    #    return str
+        str+= ", %s sedan" 
+        kvar_s = nu - self.startar
       end
     else
       str+= ", %s kvar" 

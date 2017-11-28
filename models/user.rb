@@ -7,7 +7,7 @@ class User < ActiveRecord::Base
   has_many :jobs
   has_many :mix
   has_many :mix_ranks
-  has_secure_password
+#  has_secure_password
   attr_reader :icon
 
   def self.fetch nick, store=true

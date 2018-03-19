@@ -186,12 +186,12 @@ class WwwebPlugin < BasePlugin
     def esa msg
       puts 'esa'
       #uri = 'https://horaro.org/preesa/schedule'
-      uri = 'http://www.esamarathon.com/schedule'
+      uri = 'https://esamarathon.com/schedule'
       doc = Nokogiri::HTML(open(uri).read)
-      rows = doc.xpath '//tr'
+      rows = doc.xpath '//section[@class="schedule"]/table/tbody/tr'
       list = rows.map do |row|
-        next unless row.children[7] && row.children[7].child
-        timestring = row.children[7].child['datetime']
+        next unless row.children[0] && row.children[0].child
+        timestring = row.children[0].child['datetime']
         offset = 0
         extra = 'S1'
         if !timestring
@@ -202,10 +202,13 @@ class WwwebPlugin < BasePlugin
         end
         next unless timestring
         time = Time.parse(timestring)
-        game = row.children[1 + offset].child.text
-        runner = row.children[3 + offset].child && row.children[3 + offset].child.text
+        next unless row.search('a').first
+        game = row.search('a').first.text#row.children[1 + offset].child.text
+        runner = row.search('a').last.text#row.children[3 + offset].child && row.children[3 + offset].child.text
 #        estimate = row.children[5].child.child.to_s
-        estimate = row.children[1].attributes['title'].text.split(";").first.split(": ").last
+        #estimate = row.children[1].attributes['title'].text.split(";").first.split(": ").last
+        estimate = row.search('td')[2].text
+        extra = row.search('td')[5].text
         #extra = row.children[2 + offset] && row.children[2 + offset].child && row.children[2 + offset].child.text
         [time, game, runner, estimate, extra]
       end.compact
@@ -331,7 +334,7 @@ class WwwebPlugin < BasePlugin
           page = msg.message
         end
       else
-        page = 'http://'+Url.find_by_channel(msg.channel, :order => "created_at DESC").url if page.nil?
+        page = 'http://'+Url.find_by(channel: msg.channel).url if page.nil?
       end
       begin
         doc = open(page)
@@ -466,7 +469,8 @@ class WwwebPlugin < BasePlugin
       else
         i = 1
       end
-      site = open("https://polisen.se/Uppsala_lan/Aktuellt/RSS/Lokal-RSS---Handelser/Lokala-RSS-listor1/Handelser-RSS---Uppsala-lan/?feed=rss")
+      #site = open("https://polisen.se/Uppsala_lan/Aktuellt/RSS/Lokal-RSS---Handelser/Lokala-RSS-listor1/Handelser-RSS---Uppsala-lan/?feed=rss")
+      site = open("https://polisen.se/aktuellt/rss/uppsala-lan/handelser-rss---uppsala-lan/")
       doc = Nokogiri::HTML(site)
       puts "nil!!!" if doc.nil?
       snuten = doc.xpath('//item') 

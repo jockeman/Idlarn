@@ -148,7 +148,7 @@ URLEX = /https?:\/\/[^ ]*/u
     end
 
     def randomknug(msg)
-      k = Knug.first :order => "RANDOM()"
+      k = Knug.order("RANDOM()").first
       k.url
     end
     alias :dagensknug :randomknug

@@ -21,6 +21,9 @@ class KattPlugin < BasePlugin
 
     def spara(msg)
       puts "Kattskemt"
+      if msg.user.nick.match "botgurt"
+        return nil
+      end
       Katt.spara(msg.message)
       "Heh!"
     end

@@ -56,7 +56,11 @@ class Consumer
               puts e
             end
           when :nick
-            @users.rename(raw_msg) rescue next
+            begin
+              @users.rename(raw_msg)
+            rescue
+              puts e
+            end
           end
         else
           sleep 0.01

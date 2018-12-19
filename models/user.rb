@@ -12,15 +12,23 @@ class User < ActiveRecord::Base
 
   def self.fetch nick, store=true
     nick = nick.downcase.strip
-    user = self.find_by_display(nick) or self.find_by_nick(nick)
-    user = (alt = Alt.find_by_nick(nick)) && alt.user if user.nil?
-    user = self.create :nick => nick, :display => nick if user.nil? && store
-    user.nick = nick unless user.nick == nick if user
+    user = (self.find_by_display(nick) or self.find_by_nick(nick))
+    if user.nil?
+      user = (alt = Alt.find_by_nick(nick)) && alt.user 
+    end
+    if user.nil? && store
+      user = self.create :nick => nick, :display => nick
+    end
+    if user && user.nick != nick
+      user.nick = nick
+    end
     user.save if user
     user
   end
 
   def rename new_nick
+    nick.downcase!
+    new_nick.downcase!
     Alt.find_or_create_by(user_id: self.id, nick: nick)
     self.nick = new_nick
     self.save

@@ -15,3 +15,5 @@ gem 'rack'
 gem 'morse'
 
 gem 'twitter'
+
+gem 'dentaku'

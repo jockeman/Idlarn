@@ -5,7 +5,7 @@ require 'json'
 require 'zlib'
 class WwwebPlugin < BasePlugin
   def initialize()
-    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'hrdq', 'sda', 'gdq', 'agdq', 'sgdq', 'esa', 'kris', 'titelffs', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag', 't', '', 'väder', 'vader', 'v']
+    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'hrdq', 'sda', 'gdq', 'agdq', 'sgdq', 'esa', 'kris', 'titelffs', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag', 't', '', 'väder', 'vader', 'v', 'prognos', 'fira', 'firaallt']
     @actions += ['snuten', 'farbrorblå', 'polisen','aina']
     @actions += ['callme', 'classname', 'robiname']
     @actions += ['callmedock', 'hadmedock', 'classmedock', 'robimedock']
@@ -13,6 +13,7 @@ class WwwebPlugin < BasePlugin
     @actions += ['callmename', 'hadmename', 'classmename', 'robimename']
     @actions += ['rubrlol', 'vadspela', 'vadspelalinux']
     @actions += ['stenbocken', 'vattumannen', 'fiskarna', 'väduren', 'oxen', 'tvillingarna', 'kräftan', 'lejonet', 'jungfrun', 'vågen', 'skorpionen', 'skytten']
+    @actions += ['sol']
   end
 
   #class << self
@@ -34,7 +35,41 @@ class WwwebPlugin < BasePlugin
       end
     end
 
+    def fira msg
+      doc = open "https://vadskavifira.nu"
+      nok = Nokogiri::HTML doc.read
+      days = nok.xpath("//div[@class='day']/ul") 
+      if msg.message.downcase == "imorgon"
+        day = days[1]
+        prefix = "I morgon firar"
+      elsif msg.message.downcase == "igår"
+        day = days[2]
+        prefix = "Igår firade"
+      else
+        day = days.first
+        prefix = "Idag firar"
+      end
+      fir = day.xpath("li").to_a.shuffle.first
+      prefix + " vi: " + fir.text + " (https://vadskavifira.nu)"
+    end
 
+    def firaallt msg
+      doc = open "https://vadskavifira.nu"
+      nok = Nokogiri::HTML doc.read
+      days = nok.xpath("//div[@class='day']/ul") 
+      if msg.message.downcase == "imorgon"
+        day = days[1]
+        prefix = "I morgon firar"
+      elsif msg.message.downcase == "igår"
+        day = days[2]
+        prefix = "Igår firade"
+      else
+        day = days.first
+        prefix = "Idag firar"
+      end
+      fir = day.xpath("li").to_a.map(&:text).join(' - ')
+      prefix + " vi: " + fir + " (https://vadskavifira.nu)"
+    end
     def ud msg
       index = msg.message.gsub(/.* (\d+)$/, '\1').to_i
       query = URI.encode msg.message.gsub(/ \d+$/,'').strip #.squeeze.strip
@@ -345,8 +380,39 @@ class WwwebPlugin < BasePlugin
       nok.xpath('//title').first.child.text.strip
     end
 
+    def vaderrapport parsed_data
+      description = parsed_data['weather'].map{|w| w['description']}.join(', ')
+      temp = parsed_data['main']['temp']
+      pressure = parsed_data['main']['pressure']
+      humidity = parsed_data['main']['humidity']
+      clouds = parsed_data['clouds']['all']
+      wind_speed = parsed_data['wind']['speed']
+      wind_deg = parsed_data['wind']['deg']
+      rain = parsed_data['rain']
+      if rain && !rain['3h'].nil?
+        rain = " Regn: #{rain['3h']} mm senaste 3h"
+      else
+        rain = ""
+      end
+      "#{temp} °C, #{description}. Molntäcke: #{clouds}% Luftfuktighet: #{humidity}% Lufttryck: #{pressure} hPa Vind: #{wind_speed} m/s #{wind_deg}°#{rain}"
+    end
+
     def temperatur(msg)
+      if !msg.message.empty?
+        message = URI.escape(msg.message.strip)
+        puts "Temp for #{message}"
+        data = open("https://api.openweathermap.org/data/2.5/weather?q=#{message}&appid=ef2f5f821d1b44f36b0a1b98c5aba1e1&lang=se&APPID=673b46fa555a97d07c8c670fea718092&units=metric").read
+        parsed_data = JSON.parse(data)
+        name = parsed_data['name']
+        country = parsed_data['sys']['country']
+        country_str =""
+        country_str = ", #{country}" unless country == "SE"
+        report = vaderrapport parsed_data
+
+        return "Väder #{name}#{country_str}: #{report}"#{temp} °C, #{description}. Molntäcke: #{clouds}% Luftfuktighet: #{humidity}% Lufttryck: #{pressure} hPa Vind: #{wind_speed} m/s #{wind_deg}°#{rain}"
+      end
       doc = Nokogiri::HTML(open('http://130.238.141.28/obs_10min.htm'))
+      #doc = Nokogiri::HTML(open('http://130.238.141.28/inet_obs.htm'))
       varr = doc.xpath('//pre').text.gsub(/  */," ").split("\r\n")
       #varr[1].split(":").last.strip
       #[varr[0], varr[3], varr[4], varr[5], varr[6], varr[9]].join(", ")
@@ -356,6 +422,51 @@ class WwwebPlugin < BasePlugin
     alias v temperatur 
     alias väder temperatur 
     alias vader temperatur 
+
+    def prognos(msg)
+      if !msg.message.empty?
+        (city, index) = msg.message.strip.split
+        message = URI.escape(city)
+        puts "Temp for #{message}"
+        data = open("https://api.openweathermap.org/data/2.5/forecast?q=#{message}&appid=ef2f5f821d1b44f36b0a1b98c5aba1e1&lang=se&APPID=673b46fa555a97d07c8c670fea718092&units=metric").read
+        parsed_data = JSON.parse(data)
+        name = parsed_data['city']['name']
+        country = parsed_data['city']['country']
+
+        if index.to_i <= 0
+          index = 0
+        elsif index
+          at_date = Time.now + index.to_i.hours
+          index = (parsed_data['list'].index{|f| Time.at(f['dt']) > at_date} || 0) - 1
+        else
+          index = 8
+        end
+
+        country_str =""
+        country_str = ", #{country}" unless country == "SE"
+        forecast = parsed_data['list'][index.to_i]
+        report = vaderrapport forecast
+        time = Time.at(forecast['dt'])
+
+        return "Väder #{name}#{country_str}@#{time}: #{report}"
+      end
+    end
+
+    def sol(msg)
+      message = URI.escape(msg.message.strip)
+      message = 'uppsala' if message.nil? || message.empty?
+      puts "Sol for #{message}"
+      data = open("https://api.openweathermap.org/data/2.5/weather?q=#{message}&appid=ef2f5f821d1b44f36b0a1b98c5aba1e1&lang=se&APPID=673b46fa555a97d07c8c670fea718092&units=metric").read
+      parsed_data = JSON.parse(data)
+      name = parsed_data['name']
+      country = parsed_data['sys']['country']
+      country_str =""
+      country_str = ", #{country}" unless country == "SE"
+      sunrise = Time.at(parsed_data['sys']['sunrise']).strftime('%T') rescue nil
+      sunset = Time.at(parsed_data['sys']['sunset']).strftime("%T") rescue nil
+
+      return "Sol i #{name}#{country_str} upp: #{sunrise} ner: #{sunset}"
+    end
 
     def rubrlol(msg)
       doc = Nokogiri::HTML(open('http://www.rubrikgeneratorn.se'))
@@ -411,7 +522,7 @@ class WwwebPlugin < BasePlugin
         days = d.children.map{|c| c.text}
         days.compact!
         days.select!{|s| s.length > 2}
-        [Date.parse(englishify_date(datum))] + days[1..-1] 
+        [Date.parse(englishify_date(datum))] + days[1..-1] rescue nil 
       end.compact
       #full = doc.xpath("//p[4]").children.map{|c| c.text}
       #full = full.map{|t| t.empty? ? "\n": t}.join.split("\n")

@@ -33,8 +33,12 @@ class HaddockPlugin < BasePlugin
     def insult(msg)
       return nil unless msg.message 
       return nil if msg.message.empty?
-      insultee = msg.message
-      ins = Insult.order('RANDOM()').first()
+      insultee, id = msg.message.split(":")
+      if !id.nil?
+        ins = Insult.find(id)
+      else
+        ins = Insult.order('RANDOM()').first()
+      end
       puts ins.inspect
       if ins.insult.match(/%S/)
         ins.insult.gsub!(/%S/,'%s')

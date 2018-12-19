@@ -18,6 +18,7 @@ class CachedUser
     u = User.find @dbid
     @nick = new_nick
     u.rename new_nick
+    @dbuser = u
   end
 
   def set_ignore(bool=true)

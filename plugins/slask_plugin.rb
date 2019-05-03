@@ -7,13 +7,15 @@ class SlaskPlugin < BasePlugin
   OMSTART = /omstart,.?$/
   MEDO = /^(.*)med ([aeiouyåäöAEIOUYÅÄÖéèûîüôÉÈÎÛÏÜÔâÂ])$/i
   MEDK = /^(.*)med ([bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ])$/i
-  REV = /^(.*) baklänges$/
+  REV = /^(.*) baklänges$/i
+  DICE= /^\d+d\d+$/i
+  THANKS=/^(tack|thanks|bless you|danke) ([^ ]*)$/i
   def initialize()
     @actions = ['rand', 'longjmp', 'stop', 'halt', 'tid', 'monday', 'måndag', 'öl', 'oel', /spa+c+e+$/, 'skrivaao', 'skrivåäö', 'åäö', 'skrivaoaueoeoe', 'punch', 'pick', 'dag', 'morse', 'rovare', 'pension', 'beatlön', 'pi', 'dopparedan','frdg', 'ångest', 'blodgrupp', 'ts']
     @actions += ['veme', 'vemär']
     @actions += ['å', 'ä', 'ö']
     @actions += ['amiga']
-    @regexps = [SUBEX, GSUBEX, OMSTART, MEDO, MEDK, REV]
+    @regexps = [SUBEX, GSUBEX, OMSTART, MEDO, MEDK, REV, DICE, THANKS]
   end
 
   #class << self
@@ -35,6 +37,10 @@ class SlaskPlugin < BasePlugin
           build_response(medk(message), message)
         elsif message.message=~REV
           build_response(rev(message), message)
+        elsif message.message=~DICE
+          build_response(dice(message), message)
+        elsif message.message=~THANKS
+          build_response(thanks(message), message)
         else
           super
         end
@@ -65,6 +71,23 @@ class SlaskPlugin < BasePlugin
     #  raise e
     end
     
+    def thanks(msg)
+      msg.message =~ THANKS
+      tack = $1
+      rest = $2
+      tack.sub!(/[aoeiuyåäöÅÄÖ].*$/i,'')
+      rest.sub!(/^[bcdfghjklmnpqrstvwxz]*/i,'')
+      tack+rest
+    end
+
+    def dice(msg)
+      puts 'Dice roll!'
+      n, die = msg.message.split('d')
+      puts [n, die].inspect
+      rolls = Array.new(n.to_i) {Kernel.rand(1..die.to_i) }
+      rolls.inspect + " totalt: " + rolls.sum.to_s
+    end
+
     def medo(msg)
       puts "med ö"
       msg.message=~MEDO

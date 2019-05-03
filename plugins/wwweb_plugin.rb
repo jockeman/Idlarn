@@ -238,7 +238,7 @@ class WwwebPlugin < BasePlugin
         next unless timestring
         time = Time.parse(timestring)
         next unless row.search('a').first
-        game = row.search('a').first.text#row.children[1 + offset].child.text
+        game = row.search('td')[1].text.strip#row.children[1 + offset].child.text
         runner = row.search('a').last.text#row.children[3 + offset].child && row.children[3 + offset].child.text
 #        estimate = row.children[5].child.child.to_s
         #estimate = row.children[1].attributes['title'].text.split(";").first.split(": ").last

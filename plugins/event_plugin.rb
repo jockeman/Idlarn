@@ -1,7 +1,7 @@
 # coding: utf-8
 class EventPlugin < BasePlugin
   def initialize()
-    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån', 'födelsedag', 'nästa_födelsedag', 'age', 'ålder', 'stånk']
+    @actions = ['remember', 'random', 'forget', 'undo', 'redo', 'default', 'datum', 'lokaldatum', 'lon', 'lön', 'next', 'list', 'saker', 'nästa', 'fredag', 'friday', 'events', 'history', 'idag', 'omsen', 'lån', 'födelsedag', 'nästa_födelsedag', 'age', 'ålder', 'stånk']
     @actions+=['tisdag','onsdag','torsdag','lördag','söndag']
   end
 
@@ -55,6 +55,14 @@ class EventPlugin < BasePlugin
       TimeParser.get_date(msg.message).to_s
     end
     
+    def lokaldatum(msg)
+      if msg.message.empty?
+        return Time.now.to_s
+      end
+      #TimeParser.parse_ex(msg.message).to_s
+      TimeParser.get_date(msg.message).localtime.to_s
+    end
+
     def omsen(msg)
       TimeParser.get_date(msg.message).to_date.omsen.strip.capitalize
     end

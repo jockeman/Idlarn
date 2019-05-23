@@ -70,6 +70,7 @@ class WwwebPlugin < BasePlugin
       fir = day.xpath("li").to_a.map(&:text).join(' - ')
       prefix + " vi: " + fir + " (https://vadskavifira.nu)"
     end
+
     def ud msg
       index = msg.message.gsub(/.* (\d+)$/, '\1').to_i
       query = URI.encode msg.message.gsub(/ \d+$/,'').strip #.squeeze.strip
@@ -369,7 +370,8 @@ class WwwebPlugin < BasePlugin
           page = msg.message
         end
       else
-        page = 'http://'+Url.find_by(channel: msg.channel).url if page.nil?
+        page = 'http://' + Url.where(channel: "update").order(:created_at).last.url
+        #page = 'http://'+Url.find_by(channel: msg.channel).url if page.nil?
       end
       begin
         doc = open(page)

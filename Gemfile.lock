@@ -1,0 +1,85 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    activemodel (5.0.0.1)
+      activesupport (= 5.0.0.1)
+    activerecord (5.0.0.1)
+      activemodel (= 5.0.0.1)
+      activesupport (= 5.0.0.1)
+      arel (~> 7.0)
+    activesupport (5.0.0.1)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (~> 0.7)
+      minitest (~> 5.1)
+      tzinfo (~> 1.1)
+    addressable (2.5.2)
+      public_suffix (>= 2.0.2, < 4.0)
+    arel (7.1.2)
+    bcrypt (3.1.11)
+    buftok (0.2.0)
+    concurrent-ruby (1.0.2)
+    dentaku (3.3.0)
+    domain_name (0.5.20170404)
+      unf (>= 0.0.5, < 1.0.0)
+    equalizer (0.0.11)
+    faraday (0.11.0)
+      multipart-post (>= 1.2, < 3)
+    fiber_pool (1.0.0)
+    http (2.2.2)
+      addressable (~> 2.3)
+      http-cookie (~> 1.0)
+      http-form_data (~> 1.0.1)
+      http_parser.rb (~> 0.6.0)
+    http-cookie (1.0.3)
+      domain_name (~> 0.5)
+    http-form_data (1.0.3)
+    http_parser.rb (0.6.0)
+    i18n (0.7.0)
+    memoizable (0.4.2)
+      thread_safe (~> 0.3, >= 0.3.1)
+    mini_portile2 (2.1.0)
+    minitest (5.9.1)
+    morse (0.0.2)
+    multipart-post (2.0.0)
+    naught (1.1.0)
+    nokogiri (1.6.8)
+      mini_portile2 (~> 2.1.0)
+      pkg-config (~> 1.1.7)
+    pg (0.19.0)
+    pkg-config (1.1.7)
+    public_suffix (3.0.0)
+    rack (2.0.1)
+    simple_oauth (0.3.1)
+    thread_safe (0.3.5)
+    twitter (6.1.0)
+      addressable (~> 2.5)
+      buftok (~> 0.2.0)
+      equalizer (= 0.0.11)
+      faraday (~> 0.11.0)
+      http (~> 2.1)
+      http_parser.rb (~> 0.6.0)
+      memoizable (~> 0.4.2)
+      naught (~> 1.1)
+      simple_oauth (~> 0.3.1)
+    tzinfo (1.2.2)
+      thread_safe (~> 0.1)
+    unf (0.1.4)
+      unf_ext
+    unf_ext (0.0.7.4)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  activerecord
+  bcrypt
+  dentaku
+  fiber_pool
+  morse
+  nokogiri
+  pg
+  rack
+  twitter
+
+BUNDLED WITH
+   1.13.7

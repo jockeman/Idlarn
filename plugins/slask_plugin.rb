@@ -15,6 +15,7 @@ class SlaskPlugin < BasePlugin
     @actions += ['veme', 'vemär']
     @actions += ['å', 'ä', 'ö']
     @actions += ['amiga']
+    @actions += ['ggggg']
     @regexps = [SUBEX, GSUBEX, OMSTART, MEDO, MEDK, REV, DICE, THANKS]
   end
 
@@ -71,6 +72,10 @@ class SlaskPlugin < BasePlugin
     #  raise e
     end
     
+    def ggggg(msg)
+      msg.message.gsub(/[a-zåäö]/,'g').gsub(/[A-ZÅÄÖ]/,'G')
+    end
+
     def thanks(msg)
       msg.message =~ THANKS
       tack = $1

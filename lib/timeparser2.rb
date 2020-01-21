@@ -86,7 +86,7 @@ module TimeParser
         step = day[:repeat] || 1
         wdays = day[:wday] || (1..7)
         num = day[:num]
-        num-= 1 if num
+        #num-= 1 if num
         vardag = day[:vardag] || false
       else
         step = 1
@@ -183,13 +183,13 @@ module TimeParser
         days = days.select{|d| wdays.include?(d.cwday)}
       end
       dates = dates.select{|d| !Hday.is_holiday(d)} if vardag
+      if num
+        datum = dates[num-1]
+      else
+        datum = dates.first
+      end
       dates2 = dates.select{|d| d >= base}
       dates2 = dates.last if dates2.empty?
-      if num
-        datum = dates2[num]
-      else
-        datum = dates2.first
-      end
       datum.to_time+time
     end
 

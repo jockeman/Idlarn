@@ -12,7 +12,7 @@ class Consumer
     @users = Users.new
     @plugins = {}
     @regexps = {}
-    plugins = %w(slask event quote gay wwweb urls haddock tele holiday cmds semester karma mix katt) unless plugins
+    plugins = %w(channel slask event quote wwweb urls haddock tele holiday cmds semester karma mix katt) unless plugins
     plugins.each{|p| self.load_plugin(p)}
   end
 

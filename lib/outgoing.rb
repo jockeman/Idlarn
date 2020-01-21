@@ -6,9 +6,9 @@ class Outgoing
     @priv = opts[:priv]
     @mode = opts[:mode]
     `echo "[#{Time.now.strftime "%F %T"} | ME] #{@message}" >> ~/log/#{@channel}.log` if @message
-    end
+  end
 
-  def to_s(all_caps=false, medo=nil, medk=nil)
+  def transform(all_caps=false, medo=nil, medk=nil)
     @message.upcase! if all_caps
     if medo
       @message = I18n.transliterate @message
@@ -17,6 +17,11 @@ class Outgoing
     if medk
       @message = @message.gsub(/[bcdfghjklmnpqrstvwxz]/,medk).gsub(/[BCDFGHJKLMNPQRSTVWXZ]/,medk.upcase)
     end
+  end
+   
+
+  def to_s(all_caps=false, medo=nil, medk=nil)
+    transform(all_caps, medo, medk)
     if @priv
       "PRIVMSG %s :%s" % [@channel, @message]
     elsif @mode
@@ -61,5 +66,17 @@ class ModeMessage < Outgoing
   
   def to_s(all_caps=false)
     "MODE #%s %s" % [@channel, @message]
+  end
+end
+
+class TopicMessage < Outgoing
+  def initialize(channel, topic, user)
+    @channel = channel
+    @message = topic
+  end
+
+  def to_s(all_caps=false, medo=nil, medk=nil)
+    transform(all_caps, medo, medk)
+    'TOPIC #%s :%s' % [@channel, @message]
   end
 end

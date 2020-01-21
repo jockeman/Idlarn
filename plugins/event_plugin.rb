@@ -51,16 +51,16 @@ class EventPlugin < BasePlugin
       if msg.message.empty?
         return Time.now.to_s
       end
-      #TimeParser.parse_ex(msg.message).to_s
-      TimeParser.get_date(msg.message).to_s
+      TimeParser.parse_ex(msg.message).to_s
+      #TimeParser.get_date(msg.message).to_s
     end
     
     def lokaldatum(msg)
       if msg.message.empty?
         return Time.now.to_s
       end
-      #TimeParser.parse_ex(msg.message).to_s
-      TimeParser.get_date(msg.message).localtime.to_s
+      TimeParser.parse_ex(msg.message).to_s
+      #TimeParser.get_date(msg.message).localtime.to_s
     end
 
     def omsen(msg)

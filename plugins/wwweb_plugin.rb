@@ -5,7 +5,7 @@ require 'json'
 require 'zlib'
 class WwwebPlugin < BasePlugin
   def initialize()
-    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'hrdq', 'sda', 'gdq', 'agdq', 'sgdq', 'esa', 'kris', 'titelffs', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag', 't', '', 'väder', 'vader', 'v', 'prognos', 'fira', 'firaallt']
+    @actions = ['moln', 'vecka', 'super', 'vansbro', 'mat', 'isthatcherdeadyet', 'ismycomputeron', 'hrdq', 'sda', 'gdq', 'agdq', 'sgdq', 'esa', 'kris', 'titelffs', 'title', 'titel', 'ud', 'defcon', 'temperatur', 'namnsdag', 'excuse', 'dagensdag', 'snölol', 'varning', 'temadag', 't', '', 'väder', 'vader', 'v', 'prognos', 'fira', 'firaallt']
     @actions += ['snuten', 'farbrorblå', 'polisen','aina']
     @actions += ['callme', 'classname', 'robiname']
     @actions += ['callmedock', 'hadmedock', 'classmedock', 'robimedock']
@@ -381,6 +381,8 @@ class WwwebPlugin < BasePlugin
       nok = Nokogiri::HTML(doc.read)
       nok.xpath('//title').first.child.text.strip
     end
+    alias :titel :titelffs
+    alias :title :titelffs
 
     def vaderrapport parsed_data
       description = parsed_data['weather'].map{|w| w['description']}.join(', ')

@@ -55,6 +55,7 @@ class Listener
       @irc.join('dv')
       @irc.join('dv_foto')
       @irc.join('update')
+      @irc.join('update.bots')
       @irc.join('dv_bildz')
     else
       #other($1, $2, $3, $4, $5)

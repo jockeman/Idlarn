@@ -15,3 +15,8 @@ gem 'rack'
 gem 'morse'
 
 gem 'dentaku'
+
+group :development, :test do
+  gem 'minitest'
+  gem 'rake'
+end

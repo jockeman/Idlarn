@@ -1,34 +1,57 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (7.0.4.2)
-      activesupport (= 7.0.4.2)
-    activerecord (7.0.4.2)
-      activemodel (= 7.0.4.2)
-      activesupport (= 7.0.4.2)
-    activesupport (7.0.4.2)
-      concurrent-ruby (~> 1.0, >= 1.0.2)
+    activemodel (8.1.3)
+      activesupport (= 8.1.3)
+    activerecord (8.1.3)
+      activemodel (= 8.1.3)
+      activesupport (= 8.1.3)
+      timeout (>= 0.4.0)
+    activesupport (8.1.3)
+      base64
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.3.1)
+      connection_pool (>= 2.2.5)
+      drb
       i18n (>= 1.6, < 2)
+      json
+      logger (>= 1.4.2)
       minitest (>= 5.1)
-      tzinfo (~> 2.0)
-    bcrypt (3.1.18)
-    concurrent-ruby (1.2.0)
-    dentaku (3.5.1)
+      securerandom (>= 0.3)
+      tzinfo (~> 2.0, >= 2.0.5)
+      uri (>= 0.13.1)
+    base64 (0.3.0)
+    bcrypt (3.1.22)
+    bigdecimal (4.1.1)
+    concurrent-ruby (1.3.6)
+    connection_pool (3.0.2)
+    dentaku (3.5.7)
+      bigdecimal
       concurrent-ruby
+    drb (2.2.3)
     fiber_pool (1.0.0)
-    i18n (1.12.0)
+    i18n (1.14.8)
       concurrent-ruby (~> 1.0)
-    mini_portile2 (2.8.1)
-    minitest (5.17.0)
+    json (2.19.3)
+    logger (1.7.0)
+    mini_portile2 (2.8.9)
+    minitest (6.0.3)
+      drb (~> 2.0)
+      prism (~> 1.5)
     morse (0.0.2)
-    nokogiri (1.14.0)
-      mini_portile2 (~> 2.8.0)
+    nokogiri (1.19.2)
+      mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    pg (1.4.5)
-    racc (1.6.2)
-    rack (3.0.4.1)
-    tzinfo (2.0.5)
+    pg (1.6.3)
+    prism (1.9.0)
+    racc (1.8.1)
+    rack (3.2.6)
+    rake (13.4.1)
+    securerandom (0.4.1)
+    timeout (0.6.1)
+    tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    uri (1.1.1)
 
 PLATFORMS
   ruby
@@ -38,10 +61,12 @@ DEPENDENCIES
   bcrypt
   dentaku
   fiber_pool
+  minitest
   morse
   nokogiri
   pg
   rack
+  rake
 
 BUNDLED WITH
-   2.1.4
+  4.0.10
